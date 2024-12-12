@@ -1,0 +1,10 @@
+/*@config "./tailwindcss-config.js";*/
+@import 'datatables.net-dt/css/jquery.dataTables.css';
+@import 'ag-grid-community/styles/ag-grid.css';
+@import 'ag-grid-community/styles/ag-theme-quartz.css';
+@import 'select2/dist/css/select2.css';
+@import "toastify-js/src/toastify.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

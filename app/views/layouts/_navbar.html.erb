@@ -1,0 +1,170 @@
+<div class="px-5 bg-dark ">
+  <div class="grid grid-cols-2 px-lg-5 py-3">
+    <div class="col-span-1 text-center text-lg-left mb-lg-0 flex items-center">
+      <% if user_signed_in? %>
+        <% if current_user.admin? %>
+          <div class="d-inline-flex align-items-center text-white">
+            <a data-turbo="false" href="/dashboard"><img style="width: 22px" src="<%= image_url 'home.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/business_plans"><img style="width: 22px" src="<%= image_url 'server.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/informations"><img style="width: 22px" src="<%= image_url 'user-file.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/debit_notes"><img style="width: 22px" src="<%= image_url 'check-file.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/payment_requests"><img style="width: 22px" src="<%= image_url 'pencil-file.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/analytics"><img style="width: 22px" src="<%= image_url 'vertical-bar.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/profit"><img style="width: 22px" src="<%= image_url 'calculator.svg' %>"></a>
+          </div>
+          <% if current_user.id == 7 || current_user.id == 1 %>
+            <div class="d-inline-flex align-items-center text-white ml-3">
+              <a data-turbo="false" href="/activity"><img style="width: 22px" src="<%= image_url 'eye-off.svg' %>"></a>
+            </div>
+          <% end %>
+          <!--          <div class="d-inline-flex align-items-center text-white ml-3">-->
+          <!--            <a data-turbo="false" href="/file_data/storage"><img style="width: 22px" src="<%#= image_url 'archive.svg' %>"></a>-->
+          <!--          </div>-->
+        <% elsif current_user.accountant? %>
+          <div class="d-inline-flex align-items-center text-white">
+            <a data-turbo="false" href="/dashboard"><img style="width: 22px" src="<%= image_url 'home.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/debit_notes"><img style="width: 22px" src="<%= image_url 'check-file.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/payment_requests"><img style="width: 22px" src="<%= image_url 'pencil-file.svg' %>"></a>
+          </div>
+        <% elsif (current_user.id == 10 && @branch == 'tvpl') || (current_user.id == 3 && @branch == 'nnp') %>
+          <div class="d-inline-flex align-items-center text-white">
+            <a data-turbo="false" href="/dashboard"><img style="width: 22px" src="<%= image_url 'home.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/business_plans"><img style="width: 22px" src="<%= image_url 'server.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/debit_notes"><img style="width: 22px" src="<%= image_url 'check-file.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/payment_requests"><img style="width: 22px" src="<%= image_url 'pencil-file.svg' %>"></a>
+          </div>
+
+        <% else %>
+          <div class="d-inline-flex align-items-center text-white">
+            <a data-turbo="false" href="/dashboard"><img style="width: 22px" src="<%= image_url 'home.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/business_plans"><img style="width: 22px" src="<%= image_url 'server.svg' %>"></a>
+          </div>
+          <div class="d-inline-flex align-items-center text-white ml-3">
+            <a data-turbo="false" href="/debit_notes"><img style="width: 22px" src="<%= image_url 'check-file.svg' %>"></a>
+          </div>
+        <% end %>
+        <div class="d-inline-flex align-items-center text-white ml-3">
+          <a target="_blank" href="https://home.tvplogistics.com.vn/login" style="color: white" title="Phiên bản mới ở đây">V2</a>
+        </div>
+
+    <% else %>
+        <div class="d-inline-flex align-items-center text-white">
+          <a data-turbo="false" href="/"><img style="width: 22px" src="<%= image_url 'home.svg' %>"></a>
+        </div>
+      <% end %>
+
+    </div>
+    <div class="col-span-1 text-center text-lg-right flex justify-end ">
+      <div class="flex items-center " style="font-size: 13px">
+        <div>
+          <label class="branch-label ">
+            <select class="not-select-2" name='options' id="branch">
+              <option value='tvpl'>TVPL</option>
+              <option value='nnp'>NNP</option>
+            </select>
+          </label>
+        </div>
+
+        <% if user_signed_in? %>
+          <a href="/users/edit" class="text-white flex">
+            <img style="width: 22px; margin-right: 3px" src="<%= image_url 'user.svg' %>">
+            <p class="mb-0 mt-1"><%= current_user.name %></p>
+            <%#= link_to current_user.name, edit_user_registration_path, :class => 'navbar-link' %>
+          </a>
+          <span class="px-2 text-white">|</span>
+          <a href="/users/sign_out" class="d-inline-flex">
+            <img style="width: 22px" src="<%= image_url 'sign-out.svg' %>">
+            <%#= link_to "Logout", destroy_user_session_path, method: :delete, :class => 'navbar-link' %>
+          </a>
+        <% else %>
+          <%#= link_to "Login", new_user_session_path, :class => 'navbar-link' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+<% unless request.fullpath.include?('file_data') %>
+  <div class="mt-2 px-5">
+    <% if user_signed_in? %>
+      <ol class="flex items-center whitespace-nowrap" aria-label="Breadcrumb">
+        <li class="inline-flex items-center">
+          <a class="flex items-center text-sm text-gray-500 hover:text-blue-600 focus:outline-none focus:text-blue-600 dark:focus:text-blue-500 font-bold">
+            HOME
+          </a>
+
+        </li>
+        <% request.fullpath.split('/').each_with_index do |e, i| %>
+          <% break if i > 2 %>
+          <% e = "DATA" if request.fullpath.split('/').include?('Data') && e.upcase == 'EDIT' %>
+          <% next if e == '' || e.length < 3 || e == 'Data' %>
+          <svg class="flex-shrink-0 mx-2 overflow-visible h-4 w-4 text-gray-400 dark:text-neutral-600 dark:text-neutral-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+          <li class="inline-flex items-center text-sm font-semibold text-gray-800 truncate dark:text-gray-200" aria-current="page">
+            <a><%= e.upcase.gsub('_', ' ') %></a>
+          </li>
+        <% end %>
+      </ol>
+    <% end %>
+  </div>
+<% end %>
+<script type="module">
+    $(document).ready(function () {
+
+        function setCookiee(name, value, days) {
+            var expires = "";
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+
+        function getCookiee(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        var branch = getCookiee('branch')
+        console.log(branch)
+        if (!branch) {
+            setCookiee('branch', 'tvpl', 30)
+            branch = 'tvpl'
+        }
+        $('#branch').val(branch)
+        $('#branch').on('change', function () {
+            let val = $(this).val()
+            console.log(val)
+            setCookiee('branch', val, 30)
+            location.reload();
+        })
+
+
+    })
+</script>

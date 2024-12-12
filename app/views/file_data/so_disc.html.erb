@@ -1,0 +1,155 @@
+<% sheet_link = @file.file_so_disc %>
+<div class="my-4 flex justify-between">
+  <div>
+    <span class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-400 border border-gray-500">
+      BL: <%= raw @bp.bill_of_lading %></span>
+    <span class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-400 border border-gray-500">
+      Customer: <%= @so.customer_no %></span>
+    <span class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-400 border border-gray-500">
+      Commodity: <%= @so.commodity %></span>
+    <span class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-400 border border-gray-500">
+      Month: <%= @so.month %></span>
+  </div>
+
+  <div>
+  <% unless current_user.staff? %>
+    <a href="https://docs.google.com/feeds/download/spreadsheets/Export?key=<%= sheet_link %>&exportFormat=xlsx
+" target="_blank" id="excelButton" class=" bg-transparent hover:bg-sky-800 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-sky-800 hover:border-transparent rounded">
+      Export Excel
+    </a>
+  <% end %>
+  <button id="updateValue" class="ml-2 cursor-pointer bg-transparent hover:bg-sky-500 text-blue-500 hover:text-white py-2 px-3 border border-blue-500 hover:border-transparent rounded font-bold">Update</button>
+  </div>
+</div>
+<div class="flex flex-wrap">
+  <iframe id='iframe' width="100%" src=""></iframe>
+</div>
+
+<style>
+    iframe {
+        height: 860px;
+        width: 100%;
+    }
+</style>
+
+<script type="module">
+    var soJson = JSON.parse(`<%= @so.to_json %>`.replace(/&quot;/g, '"'))
+    var id = '<%= @file.service_order_id %>'
+    let sheet_url = 'https://docs.google.com/spreadsheets/d/<%= sheet_link %>/edit'
+    var permission = '<%= @permission %>'
+
+    var bol = '<%= raw @bp.bill_of_lading %>'
+    var commodity = '<%= @so.commodity %>'
+    var customer = '<%= @so.customer_no %>'
+    var status = '<%= @status %>'
+    <% unless current_user.id == 1 || current_user.id == 7 %>
+    if (permission == 'false' || status == 'done') {
+        $('#updateValue').hide()
+        sheet_url = 'https://docs.google.com/spreadsheets/d/<%= sheet_link %>/preview'
+    }
+    <% end %>
+    document.getElementById('iframe').src = sheet_url
+
+    $('#updateValue').on('click', function () {
+
+        var dischard_url = 'https://sheets.googleapis.com/v4/spreadsheets/' +
+            '<%= sheet_link %>' + '/values/' + 'FINAL SHARING' +
+            '?alt=json&key=' + '<%= ENV['GOOGLE_API_KEY'] %>'
+        var wl_url = 'https://sheets.googleapis.com/v4/spreadsheets/' +
+            '<%= sheet_link %>' + '/values/' + 'WL WH' +
+            '?alt=json&key=' + '<%= ENV['GOOGLE_API_KEY'] %>';
+        var kho_url = 'https://sheets.googleapis.com/v4/spreadsheets/' +
+          '<%= sheet_link %>' + '/values/' + 'Nhập Kho' +
+          '?alt=json&key=' + '<%= ENV['GOOGLE_API_KEY'] %>';
+        // +'&valueRenderOption=UNFORMATTED_VALUE'
+        var data = {service_order_id: id}
+
+
+        dischard_url = dischard_url.replaceAll(' ', '%20')
+        $.when($.ajax(dischard_url), $.ajax(wl_url), $.ajax(kho_url)).done(function (final_sharing, wl_wh, kho) {
+            var total = 0
+            data.tvpl_barge = 0
+            data.discharge = 0
+            data.tvpl_truck = 0
+
+            if(!checkValueExists( final_sharing[0].values, bol)){
+                callToast('Không tìm thấy Bill of lading tương ứng , vui lòng kiểm tra lại Bill of lading')
+                return
+            }
+
+            if(!checkValueExists(final_sharing[0].values, customer)){
+                callToast('Không tìm thấy Customer tương ứng , vui lòng kiểm tra lại Customer')
+                return
+            }
+
+            if(!checkValueExists(final_sharing[0].values, commodity)){
+                callToast('Không tìm thấy Commodity tương ứng , vui lòng kiểm tra lại Commodity')
+                return
+            }
+
+            for (let c of final_sharing[0].values) {
+                let e = c
+                e = e.map(function (b) {
+                    if (typeof b == 'string') {
+                        return b.trim()
+                    }
+                    return b
+                })
+                if (e && e[0] == bol && e[2] == commodity && e[1] == customer && e[21] == soJson.month) {
+                    total = convertNumber(e[10])
+                    data.discharge = convertNumber(e[7])
+                    // data.tvpl_truck = convertNumber(e[16])
+                    // data.tvpl_barge = convertNumber(e[17])
+                    break;
+                }
+            }
+            var internal = 0
+            for (let c of kho[0].values) {
+                let e = c
+                e = e.map(function (b) {
+                    if (typeof b == 'string') {
+                        return b.trim()
+                    }
+                    return b
+                })
+                  // && (e[10].trim() == 'LONG HUNG')
+                if (e.length && Number(e[1].split('/')[0]) == soJson.month && e.includes(commodity) ) {
+                    internal += convertNumber(e[11]) / 1000
+
+                }
+            }
+            var wh_barge = 0
+
+            for (let c of wl_wh[0].values) {
+                let e = c
+                e = e.map(c => c.trim())
+                if (e.includes(bol) && e.includes(commodity) && e.includes(customer) && Number(e[0].split('/')[0]) == soJson.month && e[12] == 'WH-BARGE') {
+                    wh_barge += convertNumber(e[8]) / 1000
+                }
+            }
+
+            var external = total - internal
+            data.external_wh = convertNumber(external)
+            data.internal_wh = convertNumber(internal)
+            data.tvpl_truck = total + wh_barge
+            data.tvpl_load = 0
+            if (wh_barge != 0) {
+                data.tvpl_load = wh_barge
+            }
+
+            console.log(data)
+
+            $.ajax({
+                url: '/file_data/update_result',
+                method: 'post',
+                data: {data: data},
+                success: function (e) {
+                    callToast('Update successfully')
+                },
+                error: function (e) {
+                    callToast('Error')
+                }
+            })
+        });
+    })
+</script>

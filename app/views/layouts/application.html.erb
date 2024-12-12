@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>THI VAI PORTS LOGISTICS CORPORATION | tvplogistics | tvpl </title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta content='user-scalable=no, initial-scale=1, width=device-width' id='viewport' name='viewport'>
+  <meta name="author" content="tvplogistics.com.vn">
+  <meta name="copyright" content="Copyright 2024">
+  <meta name="description" content="THI VAI PORTS LOGISTICS CORPORATION provides top-notch logistics services.">
+  <meta name="keywords" content="logistics, ports, transportation, TVPL, THI VAI">
+  <link rel="canonical" href="<%= request.original_url %>">
+  <meta property="og:title" content="European Travel Destinations">
+  <meta property="og:description" content="THI VAI PORTS LOGISTICS CORPORATION">
+  <meta property="og:image" content="<%= asset_path('resource/1.jpg')%>">
+  <meta property="og:type" content="website">
+  <meta http-equiv="content-language" content="en-us">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<!--  <title>TVPL Logistics - Your Trusted Logistics Partner</title>-->
+  <meta name="description" content="TVPLogistics offers reliable and efficient logistics services. Learn more about our services and how we can help you. | tvpl | ">
+  <meta name="keywords" content="tvpl, tvplogistics, logistics, transportation, shipping">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <%= favicon_link_tag image_path('favicon.ico') %>
+
+  <% if content_for?(:custom_css) %>
+    <%= yield :custom_css %>
+  <% end %>
+
+  <meta name="turbolinks-cache-control" content="no-cache">
+
+  <% if @home_controller %>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <%= stylesheet_link_tag "home", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+<% else %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "main", "data-turbo-track": "reload" %>
+  <% end %>
+</head>
+
+
+<% if @home_controller %>
+  <body class="">
+    <div id="__next">
+      <div class="page-wrapper" id="top">
+        <%= render "layouts/home_navbar" %>
+        <%= yield %>
+        <%= render "layouts/footer" %>
+      </div>
+    </div>
+  </body>
+<% else %>
+  <%= render "layouts/navbar" unless @no_navbar %>
+  <body style="font-family: 'Lato', sans-serif;">
+  <main class="main-tvpl">
+    <div class="px-3">
+      <%= yield %>
+    </div>
+  </main>
+
+  <div class="overlay"></div>
+  <div class="spanner">
+    <div class="loader"></div>
+    <b>Loading ...</b>
+  </div>
+
+  <script type="module">
+      <% flash.each do |message_type, message| %>
+      callToast('<%= message%>')
+      <% end %>
+  </script>
+
+  </body>
+<% end %>
+</html>

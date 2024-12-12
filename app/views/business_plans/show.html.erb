@@ -1,0 +1,481 @@
+<div class="shadow p-4 m-2 border rounded flex flex-wrap">
+  <div class="w-1/2 mb-4">
+    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="default-tab" data-tabs-toggle="#default-tab-content" role="tablist">
+      <li class="me-2" role="presentation">
+        <button class="flex p-4 border-b-2 rounded-t-lg" id="profile-tab" data-tabs-target="#profile" type="button" role="tab" data-type="listing" aria-controls="profile" aria-selected="false">
+          <img class="w-5 mr-2" src="<%= image_path('numbered-list.svg') %>">
+          <b>Listing</b>
+        </button>
+      </li>
+      <li class="me-2" role="presentation">
+        <button class="flex p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="dashboard-tab" data-type="done" data-tabs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="false">
+          <img class="w-5 mr-2" src="<%= image_path('check.svg') %>">
+          <b>Done</b>
+        </button>
+      </li>
+    </ul>
+    <div id="default-tab-content" style="display: none">
+      <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+      </div>
+      <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+      </div>
+    </div>
+  </div>
+
+  <div id="divRequest" class="w-full">
+    <table id="example" class="display stripe row-border order-column w-full text-sm text-left rtl:text-right text-black  dark:text-gray-400" style="width:100%; table-layout: fixed">
+      <thead></thead>
+    </table>
+  </div>
+</div>
+
+
+<div id="myModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="relative p-4 w-full max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+      <!-- Modal header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+          Information
+        </h3>
+        <button data-modal-hide="myModal" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 md:p-5 space-y-4">
+        <div class="relative overflow-x-auto modal_content">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script type="module">
+    $(document).ready(function () {
+
+        function returnLink(row, url, data) {
+            if (row.so_type == 'SO LOAD') {
+                url = 'so_load'
+            } else if (row.so_type == 'SO DISC') {
+                url = 'so_disc'
+            } else if (row.so_type == 'SO CONT') {
+                url = 'so_cont'
+            }
+            else if (row.so_type == 'SO BINH KHUONG') {
+                url = 'so_bk'
+            }
+
+            let html = '<div class="flex items-center justify-center">'
+            html += `<a  href="/file_data/${url}/${row.id}" class="block text-sky-800 text-center cursor-pointer edit-so" style="cursor: pointer" alt="">`
+            if (data) {
+                html += Number(data).toLocaleString()
+            } else {
+                html += `-`
+            }
+            html += '</a></div>'
+            return html
+        }
+
+        if ($('#example_wrapper').length == 1) {
+            $('#divRequest').empty().append('<table id="example" class="display stripe row-border order-column w-full text-sm text-left rtl:text-right text-black dark:text-gray-400" style="width:100%; table-layout: fixed"> </table>');
+        }
+
+        var column = [
+            {
+                "title": "STT",
+                "mData": "id",
+                "width": "50px",
+                'Sortable': false,
+                "render": function (data, type, full, meta) {
+                    // console.log(meta.row)
+                    return meta.row + 1;
+                }
+            },
+            {"title": "Month ", "mData": "month", "width": "50px"},
+            {"title": "CONTRACT/QUOTATION", "mData": "contract", "width": "160px", 'class': 'editor'},
+            {
+                "title": "Date SO", "mData": "date_so", "width": "80px", render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return moment(data, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                }
+            },
+            {
+                "title": "CS", "mData": "users", "width": "130px", render: function (data, type, row) {
+                    var text = ''
+                    if (data.length != 0) {
+                        data = data.map(e => e.name)
+                        text = data.join(', ')
+                    }
+                    return text
+
+                }
+            },
+            {"title": "SO No.", "mData": "so", "width": "100px"},
+            {"title": "Location", "mData": "location", "width": "100px"},
+            {"title": "Equipment", "mData": "equipment", "width": "100px"},
+            {"title": "Customer", "mData": "customer_no", "width": "100px"},
+            {"title": "Vendor", "mData": "vendor_key", "width": "130px"},
+            {"title": "Type Cargo", "mData": "type_cargo", "width": "80px"},
+            {"title": "Commodity", "mData": "commodity", "width": "80px"},
+            {"title": "B/L NO.", "mData": "bill_of_lading", "width": "100px", 'class': 'editor'},
+            {"title": "Vehicle", "mData": "vehicle", "width": "100px", 'class': 'editor'},
+            {"title": "Name Of Vessel", "mData": "name_of_vessel", "width": "110px"},
+            {"title": "Description", "mData": "description", "width": "300px"},
+            {
+                "title": "Start", "mData": "start", "width": "130px", 'class': 'editor-date', render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return moment(data, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                }
+            },
+            {
+                "title": "End ", "mData": "end", "width": "130px", 'class': 'editor-date', render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return moment(data, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                }
+            },
+            {
+                "title": "Status",
+                "mData": "status",
+                "width": "120px",
+                render: function (data, type, row, meta) {
+                    if (data == 'listing') {
+                        return `<a data-url="/business_plans/update_done_so/${row.id}" class="doneSO cursor-pointer"><image class="mr-2 "  style="width: 25px; height: 25px; display: inline-block" src="<%= image_path('checkbox.svg') %>"></a>`
+                    }
+                    else {
+                        return `<image class="mr-2" style="width: 25px; height: 20px; display: inline-block" src="<%= image_path('check.svg') %>">`
+                    }
+                }
+            },
+            {
+                "title": "LOAD", "mData": "id", "width": "120px", render: function (data, type, row, meta) {
+                    return returnLink(row, 'load', row.tvpl_load)
+                }
+            },
+            {
+                "title": "DISCHARGE", "mData": "id", "width": "120px", render: function (data, type, row, meta) {
+                    return returnLink(row, 'discharge', row.discharge)
+                }
+            },
+            {
+                "title": "TRUCK", "mData": "id", "width": "120px", render: function (data, type, row, meta) {
+                    return returnLink(row, 'truck', row.tvpl_truck)
+                }
+            },
+            {
+                "title": "BARGE", "mData": "id", "width": "70px", render: function (data, type, row, meta) {
+                    return returnLink(row, 'barge', row.tvpl_barge)
+                }
+            },
+            {
+                "title": "INTERNAL WH", "mData": "id", "width": "120px", render: function (data, type, row, meta) {
+                    return returnLink(row, 'internal', row.internal_wh)
+                }
+            },
+            {
+                "title": "EXTERNAL WH", "mData": "id", "width": "120px", render: function (data, type, row, meta) {
+                    return returnLink(row, 'external', row.external_wh)
+                }
+            },
+            {
+                "title": "Grand Total", "mData": "grand_total", "width": "100px", render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return Number(data).toLocaleString()
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "Revenue", "mData": "revenue", "width": "120px", render: function (data, type, row) {
+                    let html_str = ''
+                    if (data !== 0) {
+                        html_str += Number(data).toLocaleString()
+                    }
+                    if (row.status == 'listing') {
+                    html_str += `<a href="/debit_notes/${row.id}/edit" class="pay-button ml-2 inline-block cursor-pointer edit-so" ><image style="width: 22px; height: 20px;cursor: pointer; display: inline-block" src="<%= image_path('edit.svg') %>"></a>`
+                    }
+                    return html_str
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "Cost", "mData": "cost", "width": "120px", render: function (data, type, row) {
+                    let html_str = ''
+                    if (data !== 0) {
+                        html_str += Number(data).toLocaleString()
+                    }
+                    if (row.status == 'listing') {
+                    html_str += `<a href="/payment_requests/${row.id}/edit" class="pay-button ml-2 inline-block cursor-pointer edit-so" ><image style="width: 22px; height: 20px;cursor: pointer; display: inline-block" src="<%= image_path('edit.svg') %>"></a>`
+                    }
+                    return html_str
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": " DOCS DATE",
+                "mData": "docs_date",
+                "width": "100px",
+                'class': 'editor-date',
+                render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return moment(data, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                }
+            },
+            {
+                "title": " PAYMENT TERM",
+                "mData": "payment_due_date",
+                "width": "100px",
+                'class': 'editor-date',
+                render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return moment(data, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                }
+            },
+
+
+        ]
+        var aoColumnDefs = []
+        var type = 'listing'
+
+        var table = $('#example').DataTable({
+            "destroy": true,
+            "ajax": {
+                "url": "/business_plans/data",
+                data: function (d) {
+                    d.type = type;
+                }
+            },
+            bAutoWidth: false,
+            autoWidth: false,
+            "iDisplayLength": 50,
+            scrollX: true,
+            scrollY: 600,
+            'columns': column,
+
+            aoColumnDefs: aoColumnDefs,
+            'oLanguage': {
+                'sSearch': '',
+                'sInfoFiltered': '',
+                'sSearchPlaceholder': 'Keyword ',
+                'oPaginate': {
+                    'sFirst': '',
+                    'sLast': '',
+                    'sPrevious': '<',
+                    'sNext': '>',
+                },
+
+            },
+            orderCellsTop: true,
+            fixedHeader: true,
+            ordering: true,
+            drawCallback: function (e) {
+                console.log(e.json)
+            },
+            initComplete: function () {
+
+
+            },
+            "createdRow": function (row, data, rowIndex) {
+                $.each($('td', row), function (colIndex) {
+                    var col = column[Object.keys(column)[colIndex]]
+                    $(this).attr('data-key', col['mData']);
+                    $(this).attr('so-id', data.id);
+                    $(this).attr('bp-id', data.id ? data.id : '');
+                });
+            }
+        })
+
+        $(document).on('click', 'td.editor-date', function (e) {
+
+            var text = $(this).text()
+            text = moment(text, 'MM-DD-YYYY').format('YYYY-MM-DD')
+            var td = $(this)
+            if (td.find('input').length) {
+                return
+            }
+            console.log(text)
+            var id = td.attr('so-id')
+            var key = td.attr('data-key')
+            var bp_id = td.attr('bp-id')
+            const d = new Date();
+            let time = d.getTime();
+            var new_eml = $(`<input id="${time}" class="w-100 current" type='date' value="${text}">`)
+            td.html(new_eml)
+            new_eml.focus()
+
+            var obj = {}
+            new_eml.blur(function () {
+                console.log($(this).val())
+                if ($(this).val() == text) {
+                    td.html(text)
+                    return
+                }
+                var date = moment($(this).val(), 'YYYY-MM-DD')
+                var new_date = date.format('MM-DD-YYYY')
+                var date_date = date.format('YYYY-MM-DD')
+                console.log(new_date)
+                td.html(new_date)
+                obj[key] = date_date
+                var params = {
+                    id: id,
+                    bp_id: bp_id,
+                    data: obj
+                }
+                editSO(params)
+            }).keyup(function (event) {
+                if (event.keyCode === 13) {
+                    document.activeElement.blur()
+                }
+            })
+
+        })
+
+
+        $(document).on('click', 'td.editor', function (e) {
+
+            var text = $(this).text()
+            var td = $(this)
+            if (td.find('input').length) {
+                return
+            }
+            console.log(text)
+            var id = td.attr('so-id')
+            var key = td.attr('data-key')
+            var bp_id = td.attr('bp-id')
+            const d = new Date();
+            let time = d.getTime();
+            var new_eml = $(`<input id="${time}" class="w-100 current" type="text" value="${text}" style="width: -webkit-fill-available">`)
+            td.html(new_eml)
+            new_eml.focus()
+            var obj = {}
+            new_eml.blur(function () {
+                console.log($(this).val())
+                if ($(this).val() == text) {
+                    td.html(text)
+                    return
+                }
+                td.html($(this).val())
+                obj[key] = $(this).val()
+                var params = {
+                    id: id,
+                    bp_id: bp_id,
+                    data: obj
+                }
+                editSO(params)
+            }).keyup(function (event) {
+                if (event.keyCode === 13) {
+                    document.activeElement.blur()
+                }
+            })
+
+        })
+
+        function editSO(data) {
+            $.ajax({
+                url: '/business_plans/update_attr',
+                method: 'POST',
+                data: data,
+                success: function (e) {
+                    callToast('Successfully Updated')
+                    table.ajax.reload()
+                    console.log(e)
+                },
+                error: function (e) {
+                    callToast('Error when update attributes')
+                    console.log(e)
+                }
+            })
+        }
+
+        var $targetEl = document.getElementById('myModal');
+
+        var options = {
+            placement: 'bottom-right',
+            backdrop: 'dynamic',
+            backdropClasses:
+                'bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40',
+            closable: true,
+            onHide: () => {
+                $('.modal_content').html('')
+            },
+            onShow: () => {
+                // console.log('modal is shown');
+            },
+            onToggle: () => {
+                // console.log('modal has been toggled');
+            },
+        };
+        const instanceOptions = {
+            id: 'myModal',
+            override: true
+        };
+
+        var modal = new Modal($targetEl, options, instanceOptions);
+
+        $(document).on('click', 'button[data-modal-hide="myModal"]', function () {
+            modal.hide()
+        })
+
+
+        $(document).off('click', '.pay-button').on('click', '.pay-button', function (e) {
+            let elm = $(this).parents('tr').find('td[data-key="start"]')
+            let val = elm.html()
+            if (!val) {
+                callToast('Please input date')
+                e.preventDefault()
+                return
+            }
+
+            e.preventDefault();
+            modal.toggle()
+            let url = $(this).attr("href")
+            console.log(url)
+            if (url.includes('payment')) {
+                $('#myModal').find('h3').html('Payment Request')
+            } else {
+                $('#myModal').find('h3').html('Debit Note')
+            }
+            $.ajax({
+                url: url,
+                method: 'get',
+                success: function (e) {
+                    let htmls = $(e).filter('main')
+                    $('.modal_content').html(htmls)
+                }
+            })
+        })
+
+        $(document).off('click', '.doneSO').on('click','.doneSO',function (e){
+            e.preventDefault()
+            let text = "Want to change status ?";
+            if (confirm(text) == true) {
+                let url = $(this).attr('data-url')
+                $.get(url)
+            }
+        })
+
+        $(document).on('click', '#default-tab button', function () {
+            type = $(this).attr('data-type')
+            table.ajax.reload();
+        })
+
+    })
+</script>
+

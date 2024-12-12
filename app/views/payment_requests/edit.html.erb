@@ -1,0 +1,234 @@
+<input type="hidden" id="dataJson" value="<%= @dataSo.to_json %>">
+
+<div id="myGrid" class="ag-theme-quartz" style="width: 100%; height: 300px"></div>
+<div class="flex justify-end px-2 ">
+  <button id="removeRow" class="px-4 py-2 rounded  mr-4 mt-2 bg-red-500 text-white font-bold">Remove Data</button>
+  <button id="addData" class="px-4 py-2 rounded  mr-4 mt-2 bg-blue-800 text-white font-bold">Add Data</button>
+  <button id="updateTable" class="px-4 py-2 rounded b  mr-4 mt-2 bg-sky-500  text-white font-bold">Save</button>
+</div>
+<script type="module">
+
+    function getCookiee(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    $(document).ready(function () {
+
+        var data
+        var dataJson = JSON.parse($('#dataJson').val())
+        var vendorList = dataJson.vendor
+
+        const gridOptions = {
+            rowSelection: 'single',
+            stopEditingWhenCellsLoseFocus: true,
+            autoSizeStrategy: {
+                type: 'fitCellContents'
+            },
+            columnDefs: [
+                {field: 'so', headerName: 'RELATED S/O'},
+                // {field: 'pay_date', headerName: 'DATE', type: 'dateColumn', editable: true, minWidth: 150},
+                // {field: 'requested_by', headerName: 'REQUESTED BY', editable: true},
+                // {field: 'dept', headerName: 'DEPT.', editable: true, minWidth: 150},
+                // {field: 'pr_no', headerName: 'PR NO.', editable: true, minWidth: 150},
+                {
+                    field: 'payment_vendor',
+                    minWidth: 500,
+                    headerName: 'VENDOR',
+                    suppressSizeToFit: true,
+                    editable: true,
+                    cellEditor: 'agSelectCellEditor',
+                    cellEditorParams: {
+                        values: vendorList
+                    }
+
+                },
+                // {field: 'invoice_no', editable: true, headerName: 'INVOICE NO.'},
+                // {field: 'invoice_date', type: 'dateColumn', editable: true, headerName: 'INVOICE DATE'},
+                {
+                    field: 'description',
+                    editable: true,
+                    headerName: 'DESCRIPTION',
+                    suppressSizeToFit: true,
+                    minWidth: 500,
+                },
+                {field: 'uom', headerName: 'UOM', editable: true},
+                {field: 'quantity', editable: true, headerName: ' QUANTITY', type: 'numberColumn'},
+                {field: 'unit_price', editable: true, headerName: 'UNIT PRICE', type: 'numberColumn'},
+                {
+                    field: 'vat',
+                    headerName: 'VAT',
+                    maxWidth: 80,
+                    type: 'numberColumn',
+                    editable: function (params) {
+                        return (params.data.allow == null || params.data.allow == '');
+                    },
+                    cellRenderer: function (params) {
+                        if (!params.data.vat) {
+                            return ''
+                        }
+                        return `${params.data.vat} %`
+                    }
+                },
+                {
+                    field: 'amount', headerName: ' AMOUNT',
+                    valueGetter: function (params) {
+                        params.data.amount = Math.round(params.data.quantity * params.data.unit_price)
+                        if (!params.data.amount) {
+                            return ''
+                        }
+                        return params.data.amount.toLocaleString()
+                    }
+                },
+                {
+                    field: 'amount_vat', headerName: ' AMOUNT (VAT)',
+                    valueGetter: function (params) {
+                        params.data.amount_vat = Math.round((params.data.amount + (params.data.amount * params.data.vat / 100 )))
+                        if (!params.data.amount) {
+                            return ''
+                        }
+                        return params.data.amount_vat.toLocaleString()
+                    }
+                },
+                // {field: 'docs_date', type: 'dateColumn', editable: true, headerName: ' DOCS DATE'},
+                // {
+                //     field: 'payment_due_date', type: 'dateColumn', headerName: ' PAYMENT DUE DATE',
+                //     valueGetter: function (params) {
+                //         if (!params.data.payment_due_date) {
+                //             return ''
+                //         }
+                //         return params.data.payment_due_date
+                //     }
+                // },
+                // {field: 'payment_date', type: 'dateColumn', editable: true, headerName: ' PAYMENT DATE'},
+                // {field: 'payment_status', editable: true, headerName: ' PAYMENT STATUS'},
+            ],
+            isRowSelectable: (params) => {
+                return !!params.data.allow
+            },
+            rowClassRules: {
+                // apply green to 2008
+                'bg-stone-100': function (params) {
+                    return !!params.data.allow
+                },
+                'pointer-events-none': function (params) {
+                    return !!params.data.allow
+                }
+            },
+            columnTypes: {
+                numberColumn: {
+                    valueFormatter: function (params) {
+                        if (!params.value) {
+                            return ''
+                        }
+                        return parseFloat(params.value).toLocaleString()
+                    },
+                },
+                dateColumn: {
+                    valueFormatter: function (params) {
+                        if (!params.value) {
+                            return ''
+                        }
+                        return moment(params.value, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                    },
+                    cellEditor: 'agDateStringCellEditor',
+                    cellEditorParams: {
+                        formatValue: function (date) {
+                            if (!date) {
+                                return ''
+                            }
+                            return moment(date, 'YYYY-MM-DD').format('MM-DD-YYYY');
+                        }
+                    },
+                }
+            },
+
+        };
+
+        const myGridElement = document.querySelector('#myGrid');
+
+        var gridApi = agGrid.createGrid(myGridElement, gridOptions)
+
+        var id = '<%= params[:id] %>'
+
+        $.ajax({
+            url: '/payment_requests/data',
+            method: 'get',
+            data: {id: id},
+            success: function (e) {
+                console.log(e)
+                data = e
+                if (e) {
+                    gridApi.setGridOption('rowData', e)
+                }
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        })
+
+        $('#addData').click('click', function () {
+            var newItem = {
+                id: null,
+                so: dataJson.so,
+                service_order_id: dataJson.id,
+                branch: getCookiee('branch'),
+                vat: 8
+
+            };
+            gridApi.applyTransaction({add: [newItem]});
+
+        })
+
+        $(document).off('click', '#removeRow').on('click', '#removeRow', function () {
+            const selectedData = gridApi.getSelectedRows();
+            console.log(selectedData)
+            if (selectedData[0].id && !selectedData[0].allow) {
+                $.ajax({
+                    url: '/payment_requests/remove_row',
+                    method: 'post',
+                    data: {id: selectedData[0].id},
+                    success: function (e) {
+                        const res = gridApi.applyTransaction({remove: selectedData});
+                    },
+                    error: function (e) {
+                        console.log(e.responseJSON.error)
+                        callToast(e.responseJSON.error)
+
+                    }
+                })
+            } else {
+                const res = gridApi.applyTransaction({remove: selectedData});
+            }
+        })
+
+        $('#updateTable').click('click', function () {
+            let allData = [];
+            gridApi.forEachNode((node) => {
+                allData.push(node.data);
+            });
+            var data = {id: id, data: allData}
+            console.log(data)
+            $.ajax({
+                url: '/payment_requests',
+                method: 'post',
+                data: data,
+                success: function (e) {
+                    console.log(e)
+                    callToast('Success')
+                    $('[data-modal-hide="default-modal"]').trigger('click');
+                    location.reload();
+                },
+                error: function (e) {
+                    console.log(e)
+                    callToast('Error')
+                }
+            })
+
+        })
+
+    })
+</script>
+
+

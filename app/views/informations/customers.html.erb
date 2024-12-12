@@ -1,0 +1,91 @@
+<div class="">
+  <div class="flex pb-3 justify-end round">
+    <input class="rounded" type="text" id="filter-text-box" placeholder="Key word...">
+  </div>
+  <div id="myGrid" class="ag-theme-quartz" style="height: 600px">
+  </div>
+  <div class="flex justify-end">
+    <button id="addButton" class="bg-sky-400 px-4 py-2 rounded  mr-4 mt-2  text-white font-bold"> Add
+    </button>
+  </div>
+</div>
+<script type="module">
+    $(document).ready(function () {
+        const gridOptions = {
+            stopEditingWhenCellsLoseFocus: true,
+            autoSizeStrategy: {
+                type: 'fitCellContents'
+            },
+            columnDefs: [
+                {field: 'customer_no', headerName: 'No', cellDataType: 'text', minWidth: 120, editable: true},
+                {field: 'name', headerName: 'Name', cellDataType: 'text', minWidth: 600, editable: true},
+                {field: 'address', headerName: 'Address', cellDataType: 'text', minWidth: 600, editable: true},
+                {field: 'tax_no', headerName: 'Tax', cellDataType: 'text', minWidth: 130, editable: true},
+                {field: 'dept', headerName: 'Dept', cellDataType: 'number', minWidth: 100, editable: true},
+            ],
+            onCellValueChanged: function (event) {
+                let obj = event.data
+
+                $.ajax({
+                    url: '/informations/update_attr',
+                    method: 'post',
+                    data: {type: 'customer', data: [obj]},
+                    success: function (e) {
+                        callToast('Successfully Updated')
+                    },
+                    error: function (e) {
+                        callToast('Error')
+                        console.log(e)
+                    }
+                })
+            },
+        }
+
+        const myGridElement = document.querySelector('#myGrid');
+
+        var gridApi = agGrid.createGrid(myGridElement, gridOptions)
+
+        getData('customers')
+
+        function getData(e) {
+            $.ajax({
+                url: '/informations/' + e,
+                method: 'post',
+                success: function (e) {
+                    console.log(e)
+                    if (e) {
+                        gridApi.setGridOption('rowData', e)
+                    }
+                },
+                error: function (e) {
+                    console.log(e)
+                }
+            })
+        }
+
+        $('#filter-text-box').off().keyup(function () {
+            gridApi.setGridOption(
+                'quickFilterText',
+                $(this).val()
+            );
+        })
+
+
+        $('#addButton').off().click('click', function () {
+            $.ajax({
+                url: '/informations/add_data',
+                method: 'post',
+                data: {type: 'customer'},
+                success: function (e) {
+                    gridApi.applyTransaction({add: [e]});
+                },
+                error: function (e) {
+                    callToast('Error')
+                    console.log(e)
+                }
+            })
+        })
+
+    })
+
+</script>

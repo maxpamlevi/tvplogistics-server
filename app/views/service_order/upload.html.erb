@@ -1,0 +1,25 @@
+<div class="container shadow">
+  <div>
+    <span>SO</span>
+    <%= form_with url: "/dashboard/upload", multipart: true, method: 'post' do |form| %>
+      <%= file_field_tag :file %>
+      <%= submit_tag %>
+    <% end %>
+  </div>
+
+  <div class="mt-4">
+    <span>Customer and Vendor</span>
+
+    <%= form_with url: "/dashboard/upload_legend", multipart: true, method: 'post' do |form| %>
+      <%= file_field_tag :file %>
+      <%= submit_tag %>
+    <% end %>
+  </div>
+
+  <div class="mt-4">
+      <%= @so.to_json %>
+  </div>
+
+
+
+</div>

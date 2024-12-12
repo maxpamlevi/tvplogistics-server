@@ -1,0 +1,262 @@
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+<title>Debit Note - TVPL</title>
+<style type="text/css">
+    @font-face {
+        font-family: 'Cambria';
+        src: url("<%= Rails.root.join('public', 'cambria.ttc') %>");
+
+    }
+
+    table, div {
+        font-family: 'Cambria' !important
+    }
+
+    i {
+        color: #0070c0;
+        padding-left: 3px;
+    }
+
+    img {
+        display: block;
+        width: 580px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .nnp-img img {
+        display: block;
+        width: 310px;
+    !important;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .no-mg {
+        padding: 0;
+        margin: 0;
+    }
+
+    table {
+        font-size: 11px;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    td, th {
+        border: 1.1px solid #dddddd;
+        text-align: left;
+        text-align: center;
+        padding: 5px;
+    }
+
+
+</style>
+
+<div style="font-size: 12px !important; padding-top: 20px">
+  <% if @branch == 'tvpl' %>
+    <div style="width: 100%">
+      <%= wicked_pdf_image_tag 'img-debit-note.png' %>
+    </div>
+  <% else %>
+    <div style="width: 100%" class="nnp-img">
+      <%= wicked_pdf_image_tag 'nnp-logo.png' %>
+    </div>
+  <% end %>
+  <br>
+  <div class="db-header" style="line-height: 1.5">
+    <div style="width: 100%; text-align: center; font-size: 18px"><b> ĐỀ NGHỊ THANH TOÁN</b></div>
+    <div style="width: 100%; text-align: center;font-weight: bold;color: #0070c0;font-size: 18px; margin-top: 4px">
+      <i>DEBIT NOTE</i>
+    </div>
+    <br>
+    <div style="width: 100%;"><span style="width: 30%; display: inline-block">Kính gửi<i> / To</i> :</span>
+      <span style="width: 59%; text-align: left; display: inline-block"><b><%= dn.first.customer %></b> </span>
+    </div>
+    <% if dn.first.present? %>
+      <div style="width: 100%">
+        <span style="width: 30%; display: inline-block">Căn cứ Hợp đồng số<i> / Agreement No</i> : </span><b style="width: 59%; text-align: left; display: inline-block"><%= dn.first.contract %></b>
+      </div>
+    <% end %>
+    <br>
+    <div>Chúng tôi Kính đề nghị Quý Công ty thanh toán số tiền phí dịch vụ chi tiết như sau</div>
+    <div><i class="no-mg">We would like to request your company to make payment service fees with following :</i></div>
+    <br>
+    <div style="width: 100%">
+      <div style="width: 30%; display: inline-block">
+        <div>Tên tàu làm hàng<i> / Vessel's Name</i> :</div>
+        <div>Tên hàng hóa<i> / Cargo</i>:</div>
+        <div>Thời gian bắt đầu<i> / Start time</i> :</div>
+        <div>Thời gian kết thúc<i> / End time</i> :</div>
+      </div>
+      <% if first_dn.present? %>
+        <div style="width: 59%; display: inline-block">
+          <div><b><%= first_dn.name_of_vessel %></b></div>
+          <div><%= first_dn.commodity %></div>
+          <div><%= first_dn.start.try(:strftime, "%m/%d/%Y") %></div>
+          <div><%= first_dn.end.try(:strftime, "%m/%d/%Y") %> &nbsp;</div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <br>
+
+  <table>
+    <tr>
+      <th width="4%">STT<br> <i>No</i></th>
+      <th width="8%">Dịch vụ <br> <i>Service order</i></th>
+      <th width="40%">Mô tả dịch vụ <br> <i>Service Descriptions</i></th>
+      <th width="8%">Đơn vị tính <b> <i>UOM</i></b></th>
+      <th width="8%">Số lượng <br> <i>Quantity</i></th>
+      <th width="8%">Đơn giá (VNĐ) <br> <i>Unit Price</i></th>
+      <th width="8%">Thành tiền <br><i>Amount</i></th>
+    </tr>
+
+    <% dn.each_with_index do |s, index| %>
+
+      <tr>
+        <td>
+          <span class=""><%= index + 1 %></span>
+        </td>
+        <td>
+          <span class=""><%= s.so %></span>
+        </td>
+        <td style="text-align: left !important;">
+        <span style="padding-left: 5px; padding-right: 5px">
+          <span style="color:#000000; text-align: left; margin-left: -4px" class="no-mg"><%= s.description ? s.description.split("*")[0] : '' %></span>
+          <br>
+          <span style="color:#0070c0;"><i class="no-mg"><%= s.description ? s.description.split("*")[1] : '' %></i></span>
+        </span>
+        </td>
+        <td>
+          <span class=""><%= s.uom %></span>
+        </td>
+        <td style="text-align: right; padding-right: 10px">
+          <span class=""><%= s.quantity ? number_with_delimiter(number_with_precision(s.quantity, precision: 3)) : '' %></span>
+        </td>
+        <td style="text-align: right; padding-right: 10px">
+          <span class=""><%= s.unit_price ? number_with_precision(number_with_delimiter(s.unit_price.to_f.round), precision: 0) : ''%></span>
+        </td>
+        <td style="text-align: right; padding-right: 10px">
+          <span class="" ><%= s.amount ? number_with_precision(number_with_delimiter(s.amount.to_f.round), precision: 0) : ''%></span>
+        </td>
+      </tr>
+    <% end %>
+
+    <tr >
+      <td colspan="6" >
+        <span class=""><strong>Tổng tiền chưa Thuế/ <i>Total amount w/o VAT</i></strong></span>
+      </td>
+      <td style="text-align: right; padding-right: 10px">
+        <span class=""><strong><%= number_with_delimiter amount.round %></strong></span>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="6">
+        <span class="" style="text-align: right"><strong>Thuế VAT (<%= dn.first.vat.to_f.round %>%)/ <i>VAT (<%= dn.first.vat.to_f.round %>
+          %)</i></strong></span>
+      </td>
+      <td style="text-align: right; padding-right: 10px">
+        <span class=""><strong><%= number_with_delimiter ((amount * dn.first.vat.to_f.round) / 100).round %></strong></span>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="6">
+        <span class=""><strong>Tổng Cộng/<i>Total w/t VAT</i></strong></span>
+      </td>
+      <td style="text-align: right; padding-right: 10px">
+        <span class=""><strong><%= number_with_delimiter amount_vat.round %></strong></span>
+      </td>
+    </tr>
+    <% if deposit.positive? %>
+      <tr>
+        <td colspan="6" >
+          <span class=""><strong>Tiền tạm ứng / <i>Deposit</i></strong></span>
+        </td>
+        <td style="text-align: right; padding-right: 10px">
+          <span class=""><strong><%= number_with_delimiter deposit.round %></strong></span>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="6">
+          <span class=""><strong><%= sanitize str %></strong></span>
+        </td>
+        <td style="text-align: right; padding-right: 10px">
+          <% if amount_vat > deposit %>
+            <span class=""><strong><%= number_with_delimiter paid.abs.round %></strong></span>
+          <% else %>
+            <span class=""><strong>(<%= number_with_delimiter paid.abs.round %>)</strong></span>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+    <% if compensation.positive? %>
+      <tr>
+        <td colspan="6">
+          <span class=""><strong>Bồi thường hao hụt/ <i>Compensation for loss</i></strong></span>
+        </td>
+        <td style="text-align: right; padding-right: 10px">
+          <span class=""><strong><%= number_with_delimiter compensation.round %></strong></span>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="6">
+          <span class=""><strong>Số tiền thanh toán/ <i>Payment amount</i> </strong></span>
+        </td>
+        <td style="text-align: right; padding-right: 10px">
+          <span class=""><strong><%= number_with_delimiter paid.abs.round %></strong></span>
+        </td>
+      </tr>
+    <% end %>
+  </table>
+
+  <br>
+
+  <div style="line-height: 1.5">
+    <div>Số tiền bằng chữ <i>/ Amount in words </i>:</div>
+    <% amount_vat = amount_vat - deposit if deposit.present? && deposit.positive? %>
+    <% amount_vat = amount_vat - compensation if compensation.present? && compensation.positive? %>
+    <div><b><%= I18n.with_locale(:vi) { amount_vat.abs.to_i.to_words precision: 3 }.capitalize %> đồng</b></div>
+    <div><i class="no-mg"><%= I18n.with_locale(:en) { amount_vat.abs.to_i.to_words precision: 3 }.capitalize %> dong</i>
+    </div>
+    <br>
+    <% if @branch == 'nnp' %>
+      <div>Phương thức thanh toán : <b>Chuyển khoản</b></div>
+      <div><i class="no-mg">Payment method : Bank transfer</i></div>
+      <br>
+      <div>Tài khoản thụ hưởng <i>/ Beneficiary</i> : <b>CÔNG TY CỔ PHẦN CẢNG NGUYÊN NGỌC</b></div>
+      <div>Số tài khoản <i>/ Account Number</i> : 113002958246</div>
+      <div>Tại ngân hàng <i>/ At bank</i>: Ngân hàng TMCP Công Thương
+        Việt Nam - Chi nhánh TP HCM
+      </div>
+    <% else %>
+      <div>Phương thức thanh toán : <b>Chuyển khoản</b></div>
+      <div><i class="no-mg">Payment method : Bank transfer</i></div>
+      <br>
+      <div>Tài khoản thụ hưởng <i>/ Beneficiary</i> : <b>CÔNG TY CỔ PHẦN DỊCH VỤ CẢNG THỊ VẢI</b></div>
+      <div>Số tài khoản <i>/ Account Number</i> : 3170199225</div>
+      <div>Tại ngân hàng <i>/ At bank</i>: Ngân hàng TMCP Đầu Tư và Phát Triển Việt Nam BIDV – CN Bình Chánh</div>
+    <% end %>
+  </div>
+
+
+  <br>
+  <br>
+
+  <div style="width: 100%; font-size: 12px">
+    <div style="width: 50%; display: inline-block; text-align: center">
+      <b>XÁC NHẬN CỦA KHÁCH HÀNG</b>
+    </div>
+    <div style="width: 49%; display: inline-block; text-align: center">
+      <div>Bà Rịa Vũng Tàu, <%= dn.first.date.try(:strftime, "%m/%d/%Y") %></div>
+      <div>
+        <% if @branch == 'nnp' %>
+          <b>CÔNG TY CỔ PHẦN CẢNG NGUYÊN NGỌC</b>
+        <% else %>
+          <b>CÔNG TY CỔ PHẦN DỊCH VỤ CẢNG THỊ VẢI</b>
+        <% end %>
+
+      </div>
+    </div>
+  </div>
+</div>

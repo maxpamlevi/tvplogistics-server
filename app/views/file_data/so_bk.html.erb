@@ -1,0 +1,74 @@
+<% sheet_link = @file.file_so_bk %>
+<div class="my-4 flex justify-end">
+  <% unless current_user.staff? %>
+    <a href="https://docs.google.com/feeds/download/spreadsheets/Export?key=<%= sheet_link %>&exportFormat=xlsx
+" target="_blank" id="excelButton" class=" bg-transparent hover:bg-sky-800 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-sky-800 hover:border-transparent rounded">
+      Export Excel
+    </a>
+  <% end %>
+  <button id="updateValue" class="ml-2 cursor-pointer bg-transparent hover:bg-sky-500 text-blue-500 hover:text-white py-2 px-3 border border-blue-500 hover:border-transparent rounded font-bold">Update</button>
+</div>
+<div class="flex flex-wrap">
+  <iframe id='iframe' width="100%" src=""></iframe>
+</div>
+
+<style>
+    iframe {
+        height: 740px;
+        width: 100%;
+    }
+</style>
+
+<script type="module">
+    var id = '<%= @file.service_order_id %>'
+    let sheet_url = 'https://docs.google.com/spreadsheets/d/<%= sheet_link %>/edit'
+    var permission = '<%= @permission %>'
+    var status = '<%= @status %>'
+    <% unless current_user.id == 1 || current_user.id == 7 %>
+    if (permission == 'false' || status == 'done') {
+        $('#updateValue').hide()
+        sheet_url = 'https://docs.google.com/spreadsheets/d/<%= sheet_link %>/preview'
+    }
+    <% end %>
+    document.getElementById('iframe').src = sheet_url
+
+    $('#updateValue').on('click', function () {
+        var truck_url = 'https://sheets.googleapis.com/v4/spreadsheets/' +
+            '<%= sheet_link %>' + '/values/' + 'QT' +
+            '?alt=json&key=' + '<%= ENV['GOOGLE_API_KEY'] %>'
+
+
+        var data = {service_order_id: id}
+
+        truck_url = truck_url.replaceAll(' ', '%20')
+
+        $.when($.ajax(truck_url)).done(function (truck) {
+            console.log(truck)
+            for (let e of truck.values) {
+                if (e.includes("TỔNG (I)")) {
+                    data.tvpl_truck = convertNumber(e[10]) / 1000;
+                    break;
+                }
+            }
+
+
+            console.log(data)
+            $.ajax({
+                url: '/file_data/update_result',
+                method: 'post',
+                data: {data: data},
+                success: function (e) {
+                    callToast('Success')
+                },
+                error: function (e) {
+                    callToast('Error')
+                }
+            })
+
+        });
+
+
+    })
+
+
+</script>

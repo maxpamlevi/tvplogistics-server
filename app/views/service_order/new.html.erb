@@ -1,0 +1,112 @@
+<div class="flex min-h-full flex-col justify-center px-6 lg:px-8 mx-20 ">
+  <% arr = @branch == 'nnp' ? ['SO', 'SO DISC', 'SO LOAD', 'SO CONT', 'SO BINH KHUONG'] : ['SO', 'SO DISC', 'SO LOAD'] %>
+  <div class="mt-5 sm:mx-auto sm:w-full  shadow p-4 ">
+    <%= form_with(model: @service_order, url: dashboard_create_path, method: :post) do |f| %>
+      <div class="flex flex-wrap">
+        <div class="mt-2 w-1/4 px-4">
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Branch</label>
+          <%= f.select :branch, ['tvpl', 'nnp'], { include_hidden: false }, { multiple: false, class: "w-full block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" } %>
+        </div>
+        <div class="field mt-2 w-1/4 px-4">
+          <%= f.label :month, class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :month, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+
+        <div class="field mt-2 w-1/4 px-4">
+          <%= f.label :date_so, 'Date SO', class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.date_field :date_so, placeholder: 'mm/dd/yyyy', class: " date-picker block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+        <div class="field mt-2 w-1/4 px-4">
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Type</label>
+          <%= f.select :so_type, arr, { include_hidden: false }, { multiple: false, class: "w-full block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" } %>
+        </div>
+
+        <div class="field mt-2 w-1/4 px-4">
+          <%= f.label :so, 'S/O No.', class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :so, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+
+        <div class="field mt-2 w-1/4 px-4">
+          <%= f.label :location, class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :location, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+        <div class="field mt-2 w-1/4 px-4">
+          <%= f.label :equipment, class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :equipment, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+        <div class="field mt-2 w-1/4 px-4">
+          <%= f.label :type_cargo, class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :type_cargo, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+        <div class="field mt-2 w-1/4 px-4">
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">CS</label>
+          <%= f.collection_select :user_ids, User.all, :id, :name, {}, { multiple: true, class: 'block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6' } %>
+        </div>
+
+        <div class="field mt-2 w-1/4 px-4">
+          <%= f.label 'Key Customer', class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :key_customer, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+        <div class="field mt-2 w-1/4 px-4">
+          <%= f.label :customer, class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :customer_no, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+        <div class="field mt-2 w-1/4 px-4">
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Customer full</label>
+          <%= f.select :customer, Customer.pluck(:name), { include_hidden: false }, { multiple: true, class: "w-full block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" } %>
+        </div>
+        <div class="field mt-2 w-1/2 px-4">
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Vendor</label>
+          <%= f.text_field :vendor_key, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+        <div class="field mt-2 w-1/2 px-4">
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Vendor Full</label>
+          <%= f.select :vendor, Vendor.pluck(:name), { include_hidden: false }, { multiple: true, class: "w-full block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" } %>
+        </div>
+
+        <div class="field mt-2 w-1/2 px-4">
+          <%= f.label :commodity, class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :commodity, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+        <div class="field mt-2 w-1/2 px-4">
+          <%= f.label :vehicle, class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :vehicle, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+        <div class="field mt-2 w-1/2 px-4">
+          <%= f.label :name_of_vessel, class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :name_of_vessel, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+
+        <div class="field mt-2 w-1/2 px-4">
+          <%= f.label :description, 'Work content', class: "block mb-2 text-sm font-medium text-gray-900 dark:text-white" %>
+          <%= f.text_field :description, class: "block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" %>
+        </div>
+
+      </div>
+
+      <div>
+        <div class="actions">
+          <%= f.submit "Create", class: "cursor-pointer mt-5 flex mx-auto w-25 justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+
+<style>
+    .select2-container .select2-selection--single {
+        min-height: 32px;
+    }
+</style>
+
+
+<script type="module">
+    $(document).ready(function () {
+        $('select').not('.not-select-2').select2()
+
+        $('.actions button').click(function () {
+            $(this).addClass('spin-svg')
+        })
+    })
+</script>

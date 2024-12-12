@@ -1,0 +1,566 @@
+<input type="hidden" id="vendor_list" value="<%= Customer.all.pluck(:name) %>"/>
+<input type="hidden" id="currentRole" value="<%= @role %>"/>
+
+<div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+  <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="default-tab" data-tabs-toggle="#default-tab-content" role="tablist">
+    <li class="me-2" role="presentation">
+      <button class="flex p-4 border-b-2 rounded-t-lg" id="profile-tab" data-tabs-target="#profile" type="button" role="tab" data-type="listing" aria-controls="profile" aria-selected="false">
+        <img class="w-5 mr-2" src="<%= image_path('numbered-list.svg') %>">
+        <b>Listing</b>
+      </button>
+    </li>
+    <li class="me-2" role="presentation">
+      <button class="flex p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="pending-tab" data-type="pending" data-tabs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="false">
+        <img class="w-5 mr-2" src="<%= image_path('pending.svg') %>">
+        <b>Pending</b>
+      </button>
+    </li>
+    <li class="me-2" role="presentation">
+      <button class="flex p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="dashboard-tab" data-type="done" data-tabs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="false">
+        <img class="w-5 mr-2" src="<%= image_path('check.svg') %>">
+        <b>Done</b>
+      </button>
+    </li>
+
+  </ul>
+</div>
+<div id="default-tab-content" style="display: none">
+  <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+  </div>
+  <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+  </div>
+  <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+  </div>
+</div>
+
+<div class="container-fluid">
+  <div class="flex pb-3 justify-end">
+    <input class="rounded" type="text" id="filter-text-box" placeholder="Key word...">
+  </div>
+  <div id="myGrid" class="ag-theme-quartz" style="width: 100%; height: 600px"></div>
+  <div class="flex justify-end">
+    <% if @role == 'admin' || @role == 'accountant' %>
+      <button id="doneButton" class="hover:bg-emerald-800  bg-emerald-400  px-4 py-2 rounded  mr-4 mt-2  text-white font-bold">
+        Done
+      </button>
+    <% end %>
+    <% if @role == 'admin' ||  @role == 'accountant' %>
+      <button id="returnButton" class="hover:bg-red-800 hidden bg-red-500   px-4 py-2 rounded  mr-4 mt-2  text-white font-bold">
+        Return
+      </button>
+    <% end %>
+    <button id="addButton" class="hover:bg-sky-800 bg-sky-500  px-4 py-2 rounded  mr-4 mt-2  text-white font-bold"> Add
+    </button>
+    <button id="reviewPDF" disabled class="hover:bg-gray-500 bg-gray-200 px-4 py-2 rounded mr-4 mt-2  text-white font-bold">
+      Preview PDF
+    </button>
+  </div>
+</div>
+
+<style>
+
+    .iframe {
+        display: block;
+        width: 100%;
+        height: 730px;
+    }
+</style>
+
+<div id="default-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 mx-auto z-50 justify-center items-center w-75 md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="relative p-2 w-full max-h-full">
+    <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+      <div class="flex items-center justify-between px-4 py-2 border-b rounded-t dark:border-gray-600">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+          Preview PDF
+        </h3>
+        <span class="ml-3 load-block d-inline-block mb-3"></span>
+
+        <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="default-modal">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 ">
+        <div class="modal_content">
+        </div>
+        <div>
+          <iframe class="iframe" src=""></iframe>
+        </div>
+      </div>
+      <div class="flex items-center justify-end px-4 py-2 border-t border-gray-200 rounded-b dark:border-gray-600">
+        <button id="createPDF" class="mr-3 py-2 text-white bg-blue-800 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+          Export PDF
+        </button>
+        <button data-modal-hide="default-modal" type="button" class="py-2 ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+
+    $(document).on('turbo:load', function () {
+
+        class MoodEditor {
+            mood;
+            container;
+
+            init(params) {
+                this.container = document.createElement('select');
+
+                let html = ''
+
+                let arr = JSON.parse($('#vendor_list').val())
+                html += `<option value="">&nbsp;</option>`
+                arr.forEach(function (e) {
+                    html += `<option value="${e}">${e}</option>`
+                })
+
+                this.container.innerHTML = html;
+
+                this.container.className = 'mood';
+                this.container.tabIndex = '0';
+
+            }
+
+            getGui() {
+                return this.container;
+            }
+
+            afterGuiAttached() {
+                $(this.container).select2()
+                this.container.focus();
+            }
+
+            getValue() {
+                return this.container.value;
+            }
+
+            destroy() {
+            }
+        }
+
+
+        var currentRole = $('#currentRole').val()
+        var isRowSelectable = true
+
+        const gridOptions = {
+            autoSizeStrategy: {
+                type: 'sizeColumnsToFit',
+                skipHeader: false
+            },
+            onSelectionChanged: function (event) {
+                var rowCount = event.api.getSelectedNodes().length
+
+                if (rowCount) {
+                    $('#reviewPDF').removeClass('bg-gray-200	 disabled').addClass('bg-indigo-500')
+                    $('#reviewPDF').attr('disabled', false)
+
+                } else {
+                    $('#reviewPDF').attr('disabled', true)
+
+                    $('#reviewPDF').addClass('bg-gray-200	 disabled').removeClass('bg-indigo-500')
+
+                }
+            },
+            rowSelection: 'multiple',
+            stopEditingWhenCellsLoseFocus: true,
+            isRowSelectable: (params) => {
+                return isRowSelectable
+            },
+            rowClassRules: {
+                // 'bg-stone-100': function (params) {
+                //     return Boolean(params.data.allow)
+                // },
+                // 'pointer-events-none': function (params) {
+                //     return Boolean(params.data.allow)
+                // }
+            },
+            columnDefs: [
+                {
+                    field: 'so',
+                    headerName: 'S/O',
+                    // headerCheckboxSelection: true,
+                    checkboxSelection: true,
+                    minWidth: 150,
+                    filter: 'agTextColumnFilter',
+                },
+                {field: 'date', headerName: 'DN DATE', minWidth: 150, type: 'dateColumn', editable: true},
+                {
+                    field: 'contract', headerName: 'CONTRACT', editable: function (params) {
+                        return (params.data.so == null || params.data.so === '');
+                    }, minWidth: 150
+                },
+                {
+                    field: 'customer', headerName: 'CUSTOMER', minWidth: 600, editable: function (params) {
+                        return (params.data.so == null || params.data.so === '');
+                    },
+                    cellEditor: MoodEditor,
+                    cellEditorPopup: true,
+                    cellEditorPopupPosition: 'under',
+                },
+                {
+                    field: 'description', headerName: 'DESCRIPTION', minWidth: 550,
+                    editable: function (params) {
+                        return (params.data.allow == null || params.data.allow == '');
+                    },
+                },
+                {field: 'uom', headerName: 'UOM', editable: true},
+                {
+                    field: 'quantity', headerName: ' QUANTITY',
+                    cellStyle: {textAlign: 'right'},
+                    editable: function (params) {
+                        return (params.data.allow == null || params.data.allow == '');
+
+                    },
+                    valueGetter: function (params) {
+                        if (!params.data.quantity) {
+                            return ''
+                        }
+                        return params.data.quantity = parseFloat(params.data.quantity)
+
+                    }, cellRenderer: function (params) {
+                        if (!params.data.quantity) {
+                            return ''
+                        }
+                        return params.data.quantity.toLocaleString('en-US', {
+                            minimumFractionDigits: 3,
+                            maximumFractionDigits: 3
+                        });
+                    },
+                    valueSetter: function (params) {
+                        if (params.newValue == null || params.newValue === '') {
+                            params.data.quantity = 0;
+                        } else {
+                            params.data.quantity = params.newValue;
+                        }
+                        return true;
+                    }
+                },
+                {
+                    field: 'unit_price', headerName: 'UNIT PRICE',
+                    cellStyle: {textAlign: 'right'},
+                    type: 'numberColumn', editable: function (params) {
+                        return (params.data.allow == null || params.data.allow == '');
+                    },
+                    valueSetter: function (params) {
+                        if (params.newValue == null || params.newValue === '') {
+                            params.data.unit_price = 0;
+                        } else {
+                            params.data.unit_price = params.newValue;
+                        }
+                        return true;
+                    }
+                },
+                {
+                    field: 'amount', headerName: ' AMOUNT',
+                    cellStyle: {textAlign: 'right'},
+                    maxWidth: 120,
+                    valueGetter: function (params) {
+                        params.data.amount = Math.round(parseFloat(params.data.quantity) * params.data.unit_price)
+                        if (!params.data.amount) {
+                            return ''
+                        }
+                        return params.data.amount.toLocaleString()
+                    }
+
+                },
+                {
+                    field: 'vat',
+                    headerName: 'VAT(%)',
+                    maxWidth: 90,
+                    cellStyle: {textAlign: 'right'},
+                    type: 'numberColumn',
+                    editable: function (params) {
+                        return (params.data.allow == null || params.data.allow == '');
+                    },
+                    cellRenderer: function (params) {
+                        if (!params.data.vat) {
+                            return ''
+                        }
+                        return `${params.data.vat} %`
+                    }
+                },
+                {
+                    field: 'amount_vat', headerName: ' AMOUNT (VAT)',
+                    cellStyle: {textAlign: 'right'},
+                    maxWidth: 140,
+                    valueGetter: function (params) {
+                        params.data.amount_vat = Math.round((params.data.amount + (params.data.amount * params.data.vat / 100)))
+                        if (!params.data.amount_vat) {
+                            return ''
+                        }
+                        return params.data.amount_vat.toLocaleString()
+                    }
+                },
+                {
+                    field: 'deposit',
+                    headerName: ' DEPOSIT',
+                    cellStyle: {textAlign: 'right'},
+                    width: 130,
+                    editable: true,
+                    valueGetter: function (params) {
+                        if (!params.data.deposit) {
+                            return 0
+                        }
+                        return parseFloat(params.data.deposit);
+                    },
+                    cellRenderer: function (params) {
+
+                        if (!params.data.deposit) {
+                            return ''
+                        }
+                        return parseFloat(params.data.deposit).toLocaleString();
+                    }
+                },
+                {
+                    field: 'compensation',
+                    headerName: 'COMPENSATION',
+                    cellStyle: {textAlign: 'right'},
+                    minWidth: 150,
+                    editable: true,
+                    valueGetter: function (params) {
+                        if (!params.data.compensation) {
+                            return 0
+                        }
+                        return parseFloat(params.data.compensation);
+                    },
+                    cellRenderer: function (params) {
+
+                        if (!params.data.compensation) {
+                            return ''
+                        }
+                        return parseFloat(params.data.compensation).toLocaleString();
+                    }
+                },
+                // {field: 'refund', headerName: ' REFUND', type: 'numberColumn', editable: true},
+                {field: 'payment_date', type: 'dateColumn', headerName: ' PAYMENT DATE'},
+            ],
+            pagination: true,
+            onGridReady: (params) => {
+                // params.api.getToolPanelInstance('filters').expandFilters();
+            },
+            onCellValueChanged: function (event) {
+                console.log(event)
+                let obj = event.data
+
+
+                $.ajax({
+                    url: '/debit_notes/update_attr',
+                    method: 'post',
+                    data: {data: [obj]},
+                    success: function (e) {
+                        callToast('Successfully Updated')
+                    },
+                    error: function (e) {
+                        callToast('Error')
+                        console.log(e)
+                    }
+                })
+            },
+            columnTypes: {
+                numberColumn: {
+                    valueFormatter: function (params) {
+                        if (!params.value) {
+                            return ''
+                        }
+                        return parseFloat(params.value).toLocaleString()
+                    },
+                },
+                dateColumn: {
+                    valueFormatter: function (params) {
+                        if (!params.value) {
+                            return ''
+                        }
+                        return moment(params.value, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                    },
+                    cellEditor: 'agDateStringCellEditor',
+                    cellEditorParams: {
+                        formatValue: function (date) {
+                            if (!date) {
+                                return ''
+                            }
+                            return moment(date, 'YYYY-MM-DD').format('MM-DD-YYYY');
+                        }
+                    },
+                }
+            },
+        };
+
+        const myGridElement = document.querySelector('#myGrid');
+
+        var gridApi = agGrid.createGrid(myGridElement, gridOptions)
+
+        var id = '<%= params[:id] %>'
+
+        function loadDNList(type) {
+            if (type == 'listing') {
+                $('#addButton').show()
+            } else {
+                $('#addButton').hide()
+            }
+
+            if (currentRole == 'admin') {
+                if (type == 'pending') {
+                    $('#doneButton').show()
+                } else {
+
+                    $('#doneButton').hide()
+                }
+                if (type == 'done') {
+                    $('#returnButton').show()
+                } else {
+                    $('#returnButton').hide()
+                }
+                if (type == 'listing') {
+                    $('#addButton').show()
+                }
+            }
+            if (currentRole == 'accountant') {
+                console.log('e')
+                if (type == 'pending') {
+                    $('#returnButton').show()
+                } else {
+                    $('#returnButton').hide()
+                }
+                if (type == 'listing') {
+                    $('#doneButton').show()
+                } else {
+                    $('#doneButton').hide()
+                }
+
+            }
+            $.ajax({
+                url: '/debit_notes/list',
+                method: 'get',
+                data: {type: type},
+                success: function (e) {
+                    console.log(e)
+                    if (e) {
+                        gridApi.setGridOption('rowData', e)
+                    }
+                },
+                error: function (e) {
+                    console.log(e)
+                }
+            })
+        }
+
+        loadDNList('listing')
+
+
+        $('#createPDF').click(function () {
+            let selectedRows = gridApi.getSelectedRows();
+            let ids = selectedRows.map(e => e.id)
+            let url = `/debit_notes/show?ids[]=${ids.join('&ids[]=')}`
+            url = url + '&download=pdf'
+            console.log(url)
+            window.open(url);
+            setTimeout(function () {
+                window.location.reload()
+            }, 3000)
+
+        })
+
+        $('.iframe').on('load', function () {
+            $('.load-block').removeClass('spin-svg')
+        });
+
+        const $targetEl = document.getElementById('default-modal');
+
+        const options = {
+            placement: 'bottom-right',
+            backdrop: 'dynamic',
+            backdropClasses:
+                'bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40',
+            closable: true,
+            onHide: () => {
+                $('.iframe').attr('src', '')
+                $('.iframe').innerHTML = "";
+            },
+            onShow: () => {
+            },
+            onToggle: () => {
+            },
+        };
+
+        const modal = new Modal($targetEl, options);
+
+        $('#addButton').click('click', function () {
+            $.ajax({
+                url: '/debit_notes/create_pr_without_so',
+                method: 'post',
+                data: {id: '5x3x'},
+                success: function (e) {
+                    gridApi.applyTransaction({add: [e]});
+                },
+                error: function (e) {
+                    callToast('Error')
+                    console.log(e)
+                }
+            })
+        })
+
+
+        $('#reviewPDF').click('click', function () {
+            $('.load-block').addClass('spin-svg')
+            modal.toggle()
+            $('.iframe').attr('src', '')
+            let selectedRows = gridApi.getSelectedRows();
+            let ids = selectedRows.map(e => e.id)
+            let url = `/debit_notes/show?ids[]=${ids.join('&ids[]=')}`
+            url = url + '#toolbar=0'
+            console.log(url)
+            $('.iframe').attr('src', url)
+        })
+
+        function updateStatus(type) {
+            let selectedRows = gridApi.getSelectedRows();
+            let ids = selectedRows.map(e => e.id)
+            $.ajax({
+                url: '/debit_notes/update_done_status',
+                method: 'post',
+                data: {data_ids: ids, type: type},
+                success: function (e) {
+                    let current_tab = $('#default-tab').find('button[aria-selected="true"]').attr('data-type')
+                    loadDNList(current_tab)
+                    callToast('Successfully Updated')
+                },
+                error: function (e) {
+                    callToast('Error')
+                    console.log(e)
+                }
+            })
+        }
+
+        $('#doneButton').click('click', function () {
+            updateStatus('done')
+        })
+
+        $('#filter-text-box').keyup(function () {
+            gridApi.setGridOption(
+                'quickFilterText',
+                $(this).val()
+            );
+        })
+
+
+        $('#returnButton').click('click', function () {
+            updateStatus('return')
+        })
+
+
+        $(document).on('click', '#default-tab button', function () {
+            let type = $(this).attr('data-type')
+            loadDNList(type)
+        })
+
+    })
+</script>
+
+

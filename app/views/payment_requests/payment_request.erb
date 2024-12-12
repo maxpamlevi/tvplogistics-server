@@ -1,0 +1,178 @@
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+<title>Payment Request - TVPL</title>
+<style type="text/css">
+    @font-face {
+        font-family: 'Cambria';
+        src: url("<%= Rails.root.join('public', 'cambria.ttc') %>");
+
+    }
+
+    .pdf-table, div {
+        font-family: 'Cambria' !important;
+    }
+
+    i {
+        color: #0070c0;
+        padding-left: 3px;
+        font-weight: bold;
+    }
+
+    img {
+        display: block;
+        width: 580px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .nnp-img img{
+        display: block;
+        width: 310px; !important;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    table {
+        font-size: 11px;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    td, th {
+        border: 1.1px solid #dddddd;
+        text-align: left;
+        text-align: center;
+        padding: 5px;
+    }
+</style>
+<div style="font-size: 12px !important; padding-top: 20px">
+  <% if @branch == 'tvpl' %>
+    <div style="width: 100%">
+      <%= wicked_pdf_image_tag 'img-debit-note.png' %>
+    </div>
+  <% else %>
+    <div style="width: 100%" class="nnp-img">
+      <%= wicked_pdf_image_tag 'nnp-logo.png' %>
+    </div>
+  <% end %>
+  <br>
+  <div class="db-header" style="line-height: 1.5; padding-right: 60px">
+    <div style="width: 100%; text-align: center; font-size: 18px"><b> PAYMENT REQUEST</b></div>
+    <div style="width: 93%; text-align: center;font-weight: bold;font-size: 18px; margin-top: 4px">
+      <span style="">PR No:  </span><span style="display: inline-block;width: 30%; border-bottom: 1px solid #808080 "><%= first_pay.pr_no %></span>
+    </div>
+    <br>
+    <div style="width: 100%;"><span style="width: 30%; display: inline-block">Date :</span>
+      <span style="width: 59%; text-align: left; display: inline-block"><b><%= first_pay.payment_date.try(:strftime, "%m/%d/%Y") %></b> </span>
+    </div>
+    <div style="width: 100%;"><span style="width: 30%; display: inline-block">Requested by :</span>
+      <span style="width: 59%; text-align: left; display: inline-block"><b><%= first_pay.requested_by %></b> </span>
+    </div>
+
+    <div style="width: 100%;"><span style="width: 30%; display: inline-block">Department :</span>
+      <span style="width: 59%; text-align: left; display: inline-block"><b>Kinh Doanh</b> </span>
+    </div>
+    <br>
+    <div style="width: 100%;"><span style="width: 30%; display: inline-block">Payment method :</span>
+      <span style="width: 59%; text-align: left; display: inline-block"><b><%= vendor.try(:method) %></b> </span>
+    </div>
+    <div style="width: 100%;"><span style="width: 30%; display: inline-block">Payment for :</span>
+      <span style="width: 59%; text-align: left; display: inline-block"><b><%= vendor.try(:name) %></b> </span>
+    </div>
+    <div style="width: 100%;"><span style="width: 30%; display: inline-block">Bank account no :</span>
+      <span style="width: 59%; text-align: left; display: inline-block"><b><%= vendor.try(:account_no) %></b> </span>
+    </div>
+    <div style="width: 100%;"><span style="width: 30%; display: inline-block">At bank :</span>
+      <span style="width: 59%; text-align: left; display: inline-block"><b><%= vendor.try(:bank_name) %></b> </span>
+    </div>
+    <div style="width: 100%;"><span style="width: 30%; display: inline-block">Payment due date :</span>
+      <span style="width: 59%; text-align: left; display: inline-block"><b><%= pay.minimum(:docs_date).try { |date| (date + vendor.dept.try(:days))}.try(:strftime, "%m/%d/%Y") %></b> </span>
+    </div>
+
+  </div>
+
+  <br>
+
+  <table class="pdf-table" style="font-size: 11px">
+    <tbody>
+    <tr>
+      <td style="width: 5%"><i>No</i></td>
+      <td style="width: 10%"><i>Invoice No.</i></td>
+      <td style="width: 10%"><i>Invoice Date&nbsp;</i></td>
+      <td style="width: 50%"><i>Description service</i></td>
+      <td style="width: 10%"><i>Related SO</i></td>
+      <td style="width: 10%"><i>Amount VAT</i></td>
+
+    </tr>
+    <% amount = 0 %>
+    <% amount_vat = 0 %>
+    <% pay.each_with_index do |s, index| %>
+      <% amount += s.amount.to_f %>
+      <% amount_vat += s.amount_vat.to_f %>
+      <tr>
+        <td>
+          <span><%= index + 1 %></span></td>
+        <td>
+          <span><%= s.invoice_no %></span></td>
+        <td>
+        <span>
+          <span><%= s.invoice_date.try(:strftime, "%m/%d/%Y") %></span>
+          <br></span>
+        </td>
+        <td style="text-align: left; padding-left: 10px; padding-right: 10px">
+          <span><%= s.description %></span>
+        </td>
+        <td>
+          <span><%= s.so %>&nbsp;</span></td>
+        <td style="text-align: right; padding-right: 10px">
+          <span><%= number_with_delimiter(s.amount_vat.to_f.round) %>&nbsp;</span></td>
+      </tr>
+    <% end %>
+
+    <tr>
+      <td colspan="5">
+        <span><strong>Total</strong></span>
+      </td>
+      <td style="text-align: right; padding-right: 10px">
+        <span><strong><%= number_with_delimiter(amount_vat.round) %>&nbsp;</strong></span>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <br>
+
+  <div style="line-height: 3">
+    <div style="position: relative">
+      <div style="position: absolute; left: 0;right: 0; margin-left: 40px; margin-right: 40px ;top: -4px; text-align: center"><%= pay.pluck(:remark).find { |e| !e.nil? } %></div>
+      Remarks: <span style="width: 100%">............................................................................................................................................................................................................................................................................................................................................................<br>
+
+      .................................................................................................................................................................................................................................................................................................................................................................................</span>
+    </div>
+
+  </div>
+</div>
+
+<br>
+<br>
+
+<style>
+    .containerb {
+        overflow: auto;
+    }
+
+    .box {
+        width: 24.9%;
+        height: 200px;
+        float: left;
+        border: solid 1px;
+        text-align: center;
+        font-weight: bold;
+        padding-top: 10px;
+    }
+</style>
+
+<div class="containerb">
+  <div class="box" style="border-right: none">Requested by</div>
+  <div class="box" style="border-right: none">Manager</div>
+  <div class="box" style="border-right: none">Accountant</div>
+  <div class="box">Director</div>
+</div>

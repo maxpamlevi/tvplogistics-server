@@ -1,0 +1,98 @@
+<% sheet_link = @file.file_so_load %>
+<div class="my-4 flex justify-end">
+  <% unless current_user.staff? %>
+    <a href="https://docs.google.com/feeds/download/spreadsheets/Export?key=<%= sheet_link %>&exportFormat=xlsx
+" target="_blank" id="excelButton" class=" bg-transparent hover:bg-sky-800 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-sky-800 hover:border-transparent rounded">
+      Export Excel
+    </a>
+  <% end %>
+  <button id="updateValue" class="ml-2 cursor-pointer bg-transparent hover:bg-sky-500 text-blue-500 hover:text-white py-2 px-3 border border-blue-500 hover:border-transparent rounded font-bold">Update</button>
+</div>
+<div class="flex flex-wrap">
+  <iframe id='iframe' width="100%" src=""></iframe>
+</div>
+
+<style>
+    iframe {
+        height: 740px;
+        width: 100%;
+    }
+
+</style>
+<script type="module">
+    var id = '<%= @file.service_order_id %>'
+    let sheet_url = 'https://docs.google.com/spreadsheets/d/<%= sheet_link %>/edit'
+    var permission = '<%= @permission %>'
+    var status = '<%= @status %>'
+    <% unless current_user.id == 1 %>
+    if (permission == 'false' || status == 'done') {
+        $('#updateValue').hide()
+        sheet_url = 'https://docs.google.com/spreadsheets/d/<%= sheet_link %>/preview'
+    }
+    <% end %>
+    document.getElementById('iframe').src = sheet_url
+
+    $('#updateValue').on('click', function () {
+        var barge_url = 'https://sheets.googleapis.com/v4/spreadsheets/' +
+            '<%= sheet_link %>' + '/values/' + 'Barge' +
+            '?alt=json&key=' + '<%= ENV['GOOGLE_API_KEY'] %>';
+        var truck_url = 'https://sheets.googleapis.com/v4/spreadsheets/' +
+            '<%= sheet_link %>' + '/values/' + 'Truck' +
+            '?alt=json&key=' + '<%= ENV['GOOGLE_API_KEY'] %>';
+        var load_url = 'https://sheets.googleapis.com/v4/spreadsheets/' +
+            '<%= sheet_link %>' + '/values/' + 'SHIFTLY REPORT' +
+            '?alt=json&key=' + '<%= ENV['GOOGLE_API_KEY'] %>';
+
+        var data = {service_order_id: id}
+
+        barge_url = barge_url.replaceAll(' ', '%20')
+        truck_url = truck_url.replaceAll(' ', '%20')
+        load_url = load_url.replaceAll(' ', '%20')
+        $.when($.ajax(barge_url), $.ajax(truck_url), $.ajax(load_url)).done(function (barge, truck, load) {
+            for (let e of barge[0].values) {
+                if (e.includes("TỔNG")) {
+                    data.tvpl_barge = convertNumber(e[2]) / 1000;
+                    break;
+                }
+            }
+
+            for (let e of truck[0].values) {
+                if (e.includes("TỔNG CỘNG")) {
+                    data.tvpl_truck = convertNumber(e[5]) / 1000;
+                    break;
+                }
+            }
+
+            for (let e of load[0].values) {
+                if (e.includes("TOTAL")) {
+                    data.tvpl_load = convertNumber(e[7]) / 1000;
+                    break;
+                }
+            }
+
+            // for (let e of internal[0].values) {
+            //     if (e.includes("TỔNG CỘNG")) {
+            //         data.internal_wh = parseFloat(e[6].replaceAll(',', '')) / 1000;
+            //         break;
+            //     }
+            // }
+            console.log(data)
+            $.ajax({
+                url: '/file_data/update_result',
+                method: 'post',
+                data: {data: data},
+                success: function (e) {
+                    callToast('Success')
+                },
+                error: function (e) {
+                    callToast('Error')
+                }
+            })
+
+        });
+
+
+    })
+
+
+</script>

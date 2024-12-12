@@ -1,0 +1,392 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<div class="container-fluid flex flex-wrap m-3 shadow" style="background-color: #f6f6f6">
+  <div class="w-full">
+    <div class="m-3 p-3 shadow bg-white rounded border">
+      <select name="month" id="month" class="w-1/2" multiple>
+        <option value="1" selected="selected">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+      </select>
+      <div class=" p-2 mt-3">
+        <table id="example" class="hover nowrap  display stripe row-border order-column" style=" width: 100%;">
+          <thead>
+          </thead>
+          <tfoot style="font-size: 22px; font-weight: bold">
+          <tr>
+            <th>TOTAL</th>
+            <th colspan="5">
+            </th>
+            <th class="total-debit">
+              <div class="flex items-center justify-end pr-4"></div>
+            </th>
+            <th colspan="5">
+            </th>
+            <th class="total-payment">
+              <div class="flex items-center justify-end pr-4"></div>
+            </th>
+          </tr>
+          <tr>
+            <th colspan="12" class="font-bold text-blue-600 " style="font-size: 22px !important; color: rgb(37 99 235);">
+              PROFIT : <span class="final-profit"></span></th>
+            <th>
+              <button id="excelButton" class=" bg-transparent hover:bg-sky-800 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-sky-800 hover:border-transparent rounded">
+                Download
+              </button>
+            </th>
+          </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+<style>
+    .dataTables_filter{
+        margin-bottom: 5px;
+    }
+    .dataTables_scrollBody {
+        max-height: 600px !important;
+    }
+
+    tr td div {
+        min-height: 30px;
+        /*font-size: 15px;*/
+    }
+</style>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.13.1/xlsx.full.min.js" defer></script>
+
+<script type="module">
+
+    $(document).ready(function () {
+        function returnSum(data) {
+            let n = data.reduce((accumulator, cargo) => {
+                cargo.debit_notes.forEach(customer => {
+                    if (customer['amount_vat'] !== null) {
+                        accumulator += customer['amount_vat'];
+                    }
+                });
+                return accumulator;
+            }, 0);
+            let c = data.reduce((accumulator, cargo) => {
+                cargo.payment_requests.forEach(customer => {
+                    if (customer['amount_vat'] !== null) {
+                        accumulator += customer['amount_vat'];
+                    }
+                });
+                return accumulator;
+            }, 0);
+            return [returnNumber(n,0), returnNumber(c,0)]
+        }
+
+        function returnNumber(n, f = 3) {
+            if (!Boolean(n)) {
+                return ''
+            }
+            return n.toLocaleString('en-US', {
+                minimumFractionDigits: f,
+                maximumFractionDigits: f
+            })
+        }
+
+
+        let column = [
+            {
+                "title": "SO", "mData": "so", "width": "60px"
+            },
+            {
+                "title": "CUSTOMER", "mData": "debit_notes", "width": "200",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+                    for (let i of data) {
+                        if (i.customer == null) {
+                            console.log(data)
+                            continue
+                        }
+                        html += `<div class="flex items-center text-left">&nbsp;${i.customer}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-left'
+            },
+            {
+                "title": "description", "mData": "debit_notes", "width": "auto",
+                "render": function (data, type, full, meta) {
+
+                    let html = ''
+
+                    for (let i of data) {
+                        if (i.description == null) {
+                            console.log(data)
+                            continue
+                        }
+                        html += `<div class="flex items-center text-left">&nbsp;${i.description.split('*')[0]}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-center'
+            },
+            {
+                "title": "UOM", "mData": "debit_notes", "width": "60px",
+                "render": function (data, type, full, meta) {
+
+                    let html = ''
+
+                    for (let i of data) {
+                        html += `<div class="flex items-center justify-center pr-4 text-center">&nbsp;${i.uom}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-center'
+            },
+            {
+                "title": "quantity", "mData": "debit_notes", "width": "60px",
+                "render": function (data, type, full, meta) {
+
+                    let html = ''
+
+                    for (let i of data) {
+                        html += `<div class="flex justify-end items-center pr-4">&nbsp;${returnNumber(i.quantity)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "UNIT PRICE", "mData": "debit_notes", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+
+                    for (let i of data) {
+                        html += `<div class="flex items-center justify-end pr-4">&nbsp;${returnNumber(i.unit_price)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "AMOUNT(VAT)", "mData": "debit_notes", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+
+                    for (let i of data) {
+                        html += `<div class="flex items-center justify-end pr-4">&nbsp;${returnNumber(i.amount_vat, 0)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right border-r-4'
+            },
+            {
+                "title": "Vendor", "mData": "payment_requests", "width": "auto",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+
+                    for (let i of data) {
+                        html += `<div class="flex items-center text-left">&nbsp;${returnNumber(i.payment_vendor)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-center'
+            },
+            {
+                "title": "description", "mData": "payment_requests", "width": "auto",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+
+                    for (let i of data) {
+                        html += `<div class="flex items-center text-right">&nbsp;${returnNumber(i.description)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-center'
+            },
+            {
+                "title": "UOM", "mData": "payment_requests", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+
+                    for (let i of data) {
+                        html += `<div class="flex items-center text-center">&nbsp;${i.uom ? i.uom : ''}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-center'
+            },
+            {
+                "title": "QUANTITY", "mData": "payment_requests", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+
+                    for (let i of data) {
+                        html += `<div class="flex items-center justify-end pr-4">&nbsp;${returnNumber(i.quantity)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "UNIT PRICE", "mData": "payment_requests", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+
+                    for (let i of data) {
+                        html += `<div class="flex items-center justify-end pr-4">&nbsp;${returnNumber(i.unit_price)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "AMOUNT(VAT)", "mData": "payment_requests", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+
+                    for (let i of data) {
+                        html += `<div class="flex items-center justify-end pr-4">&nbsp;${returnNumber(i.amount_vat,0)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right '
+            }
+        ]
+
+        var data
+        var table = $('#example').DataTable({
+            "ajax": {
+                "url": "/analytics/data",
+                'data': {type: 'e'},
+                "dataSrc": function (json) {
+                    console.log(json)
+                    json.data = json.data.filter(function (e) {
+                        if (e.debit_notes.length == 0 && e.payment_requests.length == 0) {
+                            return false
+                        }
+                        if (e.debit_notes.length == 1 && e.payment_requests.length == 1 && e.debit_notes[0].quantity == null && e.payment_requests[0].quantity == null) {
+
+                            return false
+                        }
+                        return true
+                    })
+                    return json.data
+                }
+            },
+            destroy: true,
+            bAutoWidth: false,
+            autoWidth: false,
+            "iDisplayLength": 50,
+            scrollX: true,
+            scrollY: 530,
+            columns: column,
+            searching: true,
+            info: false,
+            ordering: false,
+            paging: false,
+            orderCellsTop: true,
+            fixedHeader: true,
+            initComplete: function (settings, json) {
+                afterComplete(json)
+            },
+
+
+        })
+
+        function afterComplete(json) {
+            data = json.data
+            let sum = returnSum(json.data)
+            console.log(sum)
+            $('.total-debit div').html(sum[0],0)
+            $('.total-payment div').html(sum[1],0)
+            $('.final-profit').html(returnNumber(convertNumber(sum[0]) - convertNumber(sum[1]),0))
+            console.log(convertNumber(sum[0]) - convertNumber(sum[1]))
+            $('.profit-header').remove()
+            $('.dataTables_scrollHeadInner thead').prepend(`
+                 <tr class="profit-header">
+                    <th colspan="7" class="dt-head-center border-r-4" style="background-color: #f1f1f1">REVENUE</th>
+                    <th colspan="6" class="dt-head-center" style="background-color: #f1f1f1">COST</th>
+                </tr>
+                `)
+        }
+
+        function calculateColumnWidths(data) {
+            var columnWidths = [];
+            data.forEach(function (row) {
+                Object.keys(row).forEach(function (key, index) {
+                    var cellLength = String(row[key]).length;
+                    if (columnWidths[index] === undefined || cellLength > columnWidths[index]) {
+
+                        columnWidths[index] = cellLength + 2;
+
+                    }
+                });
+            });
+
+            return columnWidths;
+        }
+
+        $('#excelButton').off().on('click', function () {
+
+            let row = []
+            data.map(function (e, i) {
+                let arr = e.debit_notes.length > e.payment_requests.length ? e.debit_notes : e.payment_requests
+                for (let i = 0; i < arr.length; i++) {
+                    let obj = {
+                        SO: e.so,
+                        CUSTOMER: e.debit_notes[i] ? e.debit_notes[i].customer : '',
+                        'DESCRIPTION': e.debit_notes[i] ? e.debit_notes[i].description.split('*')[0] : '',
+                        UOM: e.debit_notes[i] ? e.debit_notes[i].uom : '',
+                        QUANTITY: e.debit_notes[i] ? e.debit_notes[i].quantity : '',
+                        'UNIT PRICE': e.debit_notes[i] ? e.debit_notes[i].unit_price : '',
+                        'AMOUNT(VAT)': e.debit_notes[i] ? e.debit_notes[i].amount_vat : '',
+                        'VENDOR': e.payment_requests[i] ? e.payment_requests[i].payment_vendor : '',
+                        'DESCRIPTION ': e.payment_requests[i] ? e.payment_requests[i].description.split('*')[0] : '',
+                        'UOM ': e.payment_requests[i] ? e.payment_requests[i].uom : '',
+                        'QUANTITY ': e.payment_requests[i] ? e.payment_requests[i].quantity : '',
+                        'UNIT PRICE ': e.payment_requests[i] ? e.payment_requests[i].unit_pirce : '',
+                        'AMOUNT(VAT) ': e.payment_requests[i] ? e.payment_requests[i].amount_vat : '',
+                    }
+                    row.push(obj)
+                }
+            })
+            console.log(row)
+
+            let currentDate = moment().format("MM-DD-YYYY")
+            let filename = 'PROFIT REPORT ' + currentDate + '.xlsx';
+            var ws = XLSX.utils.json_to_sheet(row);
+            var columnWidths = calculateColumnWidths(row);
+            ws['!cols'] = columnWidths.map(function (width) {
+                return {wch: width};
+            });
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "People");
+            XLSX.writeFile(wb, filename);
+        })
+
+        $('select').not('.not-select-2').select2()
+
+        $('#month').on('select2:close', function () {
+            $.ajax({
+                url: "/analytics/data",
+                data: {months: $(this).val(), type: 'e'},
+                method: 'get',
+                success: function (e) {
+                    data = e
+                    afterComplete(e)
+                    console.log(e)
+                    table.clear().rows.add(e.data).draw();
+                }
+            })
+        })
+    })
+</script>

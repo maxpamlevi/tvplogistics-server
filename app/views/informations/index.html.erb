@@ -1,0 +1,39 @@
+<div class="container-fluid">
+  <div class="d-flex">
+  <span id="vendor" class="inline-flex cursor-pointer items-center rounded-md bg-green-50 px-4 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+   <b>Vendor</b>
+  </span>
+    <span id="customer" class="ml-4 cursor-pointer inline-flex items-center rounded-md bg-green-50 px-4 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+   <b>Customer</b>
+  </span>
+  </div>
+  <div id="content"></div>
+</div>
+
+<script type="module">
+
+    $(document).ready(function () {
+        $('#customer').click(function () {
+            $.ajax({
+                url: '/informations/customers',
+                method: 'get',
+                success: function (e) {
+                    let htmls = $(e).filter('main')
+                    $('#content').html(htmls)
+                }
+            })
+        })
+
+        $('#vendor').click(function () {
+            $.ajax({
+                url: '/informations/vendors',
+                method: 'get',
+                success: function (e) {
+                    let htmls = $(e).filter('main')
+                    $('#content').html(htmls)
+                }
+            })
+        })
+
+    })
+</script>

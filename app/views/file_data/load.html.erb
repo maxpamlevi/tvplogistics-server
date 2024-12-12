@@ -1,0 +1,70 @@
+<% sheet_link = @file.file_load_id %>
+<div class="my-4 flex justify-end">
+  <% unless current_user.staff? %>
+    <a href="https://docs.google.com/feeds/download/spreadsheets/Export?key=<%= sheet_link %>&exportFormat=xlsx
+" target="_blank" id="excelButton" class=" bg-transparent hover:bg-sky-800 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-sky-800 hover:border-transparent rounded">
+      Export Excel
+    </a>
+  <% end %>
+  <button id="updateValue" class="ml-2 cursor-pointer bg-transparent hover:bg-sky-500 text-blue-500 hover:text-white py-2 px-3 border border-blue-500 hover:border-transparent rounded font-bold">Update</button>
+</div>
+<div class="flex flex-wrap">
+  <iframe id='iframe' width="100%" src=""></iframe>
+</div>
+
+<style>
+    iframe {
+        height: 740px;
+        width: 100%;
+    }
+</style>
+
+<script type="module">
+    var soJson = JSON.parse(`<%= @so.to_json %>`.replace(/&quot;/g, '"'))
+    var id = '<%= @file.service_order_id %>'
+    let sheet_url = 'https://docs.google.com/spreadsheets/d/<%= sheet_link %>/edit'
+    var permission = '<%= @permission %>'
+    var status = '<%= @status %>'
+    <% unless current_user.id == 1 %>
+    if (permission == 'false' || status == 'done') {
+        $('#updateValue').hide()
+        sheet_url = 'https://docs.google.com/spreadsheets/d/<%= sheet_link %>/preview'
+    }
+    <% end %>
+
+    document.getElementById('iframe').src = sheet_url
+
+    $('#updateValue').on('click',
+        function () {
+            var url1 = 'https://sheets.googleapis.com/v4/spreadsheets/' +
+                '<%= sheet_link %>' + '/values/' + 'WL LOAD' +
+                '?alt=json&key=' + '<%= ENV['GOOGLE_API_KEY'] %>';
+            var data = {service_order_id: id}
+            url1 = url1.replaceAll(' ', '%20')
+            $.when($.ajax(url1)).done(function (a1) {
+                data.tvpl_load = 0
+                for (let e of a1.values) {
+                    if (e[8] && Number(e[8].split('/')[0]) == soJson.month) {
+                        data.tvpl_load += convertNumber(e[5]) / 1000;
+                    }
+                }
+                console.log(data)
+                $.ajax({
+                    url: '/file_data/update_result',
+                    method: 'post',
+                    data: {data: data},
+                    success: function (e) {
+                        callToast('Success')
+                    },
+                    error: function (e) {
+                        callToast('Error')
+                    }
+                })
+
+            });
+
+
+        })
+
+
+</script>

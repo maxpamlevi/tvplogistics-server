@@ -1,0 +1,822 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<input type="hidden" id="report_nnp" value="<%= @report_nnp.to_json %>"/>
+<input type="hidden" id="report_tvpl" value="<%= @report_tvpl.to_json %>"/>
+<input type="hidden" id="report_grand" value="<%= @grand.to_json %>"/>
+<input type="hidden" id="grand_tvpl" value="<%= @grand_tvpl.to_json %>"/>
+<input type="hidden" id="grand_nnp" value="<%= @grand_nnp.to_json %>"/>
+<style>
+  .dataTables_scrollBody{
+      height: auto !important;
+      max-height: max-content !important;
+  }
+</style>
+<div class="container-fluid flex flex-wrap m-3 shadow" style="background-color: #f6f6f6">
+  <div class="w-1/2 ">
+    <div class="m-3 p-3 shadow bg-white rounded ">
+      <select name="month" id="month" class="w-1/2" multiple>
+        <option value="1" selected="selected">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+      </select>
+      <div class=" p-2 mt-3">
+        <table id="example" class="hover row-border w-full text-sm text-left rtl:text-right text-black  dark:text-gray-400" style="width:100%; table-layout: fixed ">
+          <thead></thead>
+          <tfoot>
+          <tr>
+            <th>TOTAL</th>
+            <th>
+              <div class="flex justify-end"></div>
+            </th>
+            <th>
+              <div class="flex justify-end"></div>
+            </th>
+            <th>
+              <div class="flex justify-end"></div>
+            </th>
+            <th>
+              <div class="flex justify-end"></div>
+            </th>
+            <th>
+              <div class="flex justify-end"></div>
+            </th>
+            <th>
+              <div class="flex justify-end"></div>
+            </th>
+          </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap w-1/2 ">
+<!--    <div class="w-full m-3 p-3 bg-white rounded border">-->
+<!--      <select name="type" id="type" class="w-full">-->
+<!--        <option value="total_load">LOAD</option>-->
+<!--        <option value="total_truck">TRUCK</option>-->
+<!--        <option value="total_barge">BARGE</option>-->
+<!--        <option value="total_discharge">DISCHARGE</option>-->
+<!--        <option value="total_wh">WAREHOUSE</option>-->
+<!--        <option value="total_grand">TOTAL</option>-->
+<!--      </select>-->
+<!--    </div>-->
+    <div class="flex chart-wrapper flex-wrap w-full m-3 p-3 bg-white rounded justify-center"></div>
+  </div>
+
+  <div class="mt-3 mb-5 w-full">
+    <div class="compare-wrapper flex flex-wrap justify-center w-auto m-3 p-3 bg-white rounded ">
+    </div>
+  </div>
+
+  <div class="flex flex-wrap w-full bg-white p-3 m-3">
+    <div class="w-2/3 flex flex-wrap">
+      <div class="w-full text-center font-bold bg-emerald-300 my-2 mr-2 text-white">TOTAL QUANTITY OF TWO AREA (PER MONTH)</div>
+      <div class="mt-3 mb-5 w-1/2 flex flex-wrap" id="app">
+        <div class="w-1/2  ">
+          <div class="text-center font-bold w-full">PHU MY</div>
+
+          <table class=" mx-auto mt-3" style="height: 110px">
+
+            <tr style="height: 10px">
+              <th class="border border-slate-300 font-bold px-8 py-0 text-xs text-white" style="background-color: #3f83f880">MONTH</th>
+              <th class="border border-slate-300 font-bold px-8 py-0 text-xs text-white" style="background-color: #3f83f880">QUANTITY</th>
+            </tr>
+
+            <tr v-for="i in tvpl">
+              <td class="border text-center">{{ i.month }}</td>
+              <td class="border text-right pr-2">{{ i.total_grand.toLocaleString("en-US", {
+                minimumFractionDigits: 3,
+                maximumFractionDigits: 3
+                }) }}</td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="w-1/2">
+          <div class="text-center font-bold w-full">NGUYEN NGOC</div>
+          <table class="mx-auto mt-3" style="height: 110px">
+            <tr style="height: 10px">
+              <th class="border border-slate-300 font-bold px-8 py-0 text-xs text-white" style="background-color: rgb(226, 67, 30);">MONTH</th>
+              <th class="border border-slate-300 font-bold px-8 py-0 text-xs text-white" style="background-color: rgb(226, 67, 30);">QUANTITY</th>
+            </tr>
+            <tr v-for="i in nnp">
+              <td class="border  text-center">{{ i.month }}</td>
+              <td class="border  text-right pr-2">{{ i.total_grand.toLocaleString("en-US", {
+                minimumFractionDigits: 3,
+                maximumFractionDigits: 3
+                }) }}</td>
+            </tr>
+          </table>
+        </div>
+
+      </div>
+      <div class="w-1/2 grand-total-wrapper ">
+        <div class="text-center font-bold">PHU MY</div>
+        <div id="line_top_x" class="p-2 w-full"></div>
+        <div class="text-center font-bold">NGUYEN NGOC</div>
+        <div id="line_top_x2" class="p-2"></div>
+      </div>
+    </div>
+    <div class="w-1/3  each-chart-wrapper flex flex-wrap">
+      <div class="w-full text-center font-bold bg-emerald-300 my-2 mb-2 text-white" style="height: 24px;">TOTAL QUANTITY (PER SERVICE)</div>
+    </div>
+  </div>
+  <div class="donut-wrapper bg-white p-3 m-3 flex flex-wrap justify-center w-full">
+
+  </div>
+</div>
+
+<style>
+
+    tr td div {
+        min-height: 30px;
+        /*font-size: 15px;*/
+    }
+
+    table tr td {
+        height: 15px !important;
+        font-size: 12px;
+    }
+</style>
+<script type="module">
+
+    $(document).ready(function () {
+        function returnNumber(n) {
+            if (!Boolean(n)) {
+                return ''
+            }
+            return n.toLocaleString('en-US', {
+                minimumFractionDigits: 3,
+                maximumFractionDigits: 3
+            })
+        }
+
+        function returnSum(data, key) {
+            let n = data.reduce((accumulator, cargo) => {
+                cargo.data.forEach(customer => {
+                    if (customer[key] !== null) {
+                        accumulator += customer[key];
+                    }
+                });
+                return accumulator;
+            }, 0);
+            if (!Boolean(n)) {
+                return 0
+            }
+            return returnNumber(n)
+        }
+
+        function returnSumRaw(data, key) {
+            let n = data.reduce((accumulator, cargo) => {
+                cargo.data.forEach(customer => {
+                    if (customer[key] !== null) {
+                        accumulator += customer[key];
+                    }
+                });
+                return accumulator;
+            }, 0);
+            return Number(n.toFixed(3))
+        }
+
+        $('select').not('.not-select-2').select2({closeOnSelect:false})
+        var dataCompare = {
+            "key_customer": "Target",
+            "total_load": 300000,
+            "total_discharge": 900000,
+            "total_truck": 500000,
+            "total_barge": 350000,
+            "total_wh": 650000,
+            "total_grand": 2700000,
+        }
+        var dataCompare2 = {
+            "key_customer": "Target",
+            "total_load": 420000,
+            "total_discharge": 30000,
+            "total_truck": 190000,
+            "total_barge": 90000,
+            "total_wh": 170000,
+            "total_grand": 900000,
+        }
+        var dataTotal = {}
+        var dataChart
+        let column = [
+            {
+                "title": "CUSTOMER", "mData": "type_cargo", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+                    html += `<div><b>${data}</b></div>`
+                    for (let i of full.data) {
+                        html += `<div class="flex justify-end">${i.key_customer}</div>`
+                    }
+                    return html
+                }
+            },
+            {
+                "title": "LOAD", "mData": "data", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+                    html += `<div>&nbsp;</div>`
+                    for (let i of data) {
+                        html += `<div class="flex justify-end">&nbsp;${returnNumber(i.total_load)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "DISCHARGE", "mData": "data", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+                    html += `<div>&nbsp;</div>`
+                    for (let i of full.data) {
+                        html += `<div class="flex justify-end">&nbsp;${returnNumber(i.total_discharge)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "TRUCKS", "mData": "data", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+                    html += `<div>&nbsp;</div>`
+                    for (let i of full.data) {
+                        html += `<div class="flex justify-end">&nbsp;${returnNumber(i.total_truck)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "BARGES", "mData": "data", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+                    html += `<div>&nbsp;</div>`
+                    for (let i of full.data) {
+                        html += `<div class="flex justify-end">&nbsp;${returnNumber(i.total_barge)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "WAREHOUSE", "mData": "data", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+                    html += `<div>&nbsp;</div>`
+                    for (let i of full.data) {
+                        html += `<div class="flex justify-end">&nbsp;${returnNumber(i.total_wh)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "TOTAL", "mData": "data", "width": "60px",
+                "render": function (data, type, full, meta) {
+                    let html = ''
+                    html += `<div>&nbsp;</div>`
+                    for (let i of full.data) {
+                        html += `<div class="flex justify-end">&nbsp;${returnNumber(i.total_grand)}</div>`
+                    }
+                    return html
+                },
+                className: 'dt-right dt-head-right'
+            }
+        ]
+        var table = $('#example').DataTable({
+            "destroy": true,
+            "ajax": {
+                "url": "/analytics/data",
+                "dataSrc": function (data) {
+                    let filteredArr = data.data.filter(item => item.data.length > 0)
+                    return filteredArr
+                }
+            },
+            bAutoWidth: false,
+            autoWidth: false,
+            "iDisplayLength": 50,
+            scrollX: true,
+            scrollY: 500,
+            'columns': column,
+            searching: false,
+            info: false,
+            paging: false,
+            orderCellsTop: true,
+            fixedHeader: true,
+            ordering: true,
+            initComplete: function (settings, json) {
+                afterComplete(json)
+            },
+        })
+
+        function afterComplete(json) {
+            let dataSrc = json.data
+            const total_load = returnSum(dataSrc, 'total_load')
+            const total_discharge = returnSum(dataSrc, 'total_discharge')
+            const total_truck = returnSum(dataSrc, 'total_truck')
+            const total_barge = returnSum(dataSrc, 'total_barge')
+            const total_wh = returnSum(dataSrc, 'total_wh')
+            const total_grand = returnSum(dataSrc, 'total_grand')
+            $('tfoot').find('th:nth-child(2) div').html(total_load)
+            $('tfoot').find('th:nth-child(3) div').html(total_discharge)
+            $('tfoot').find('th:nth-child(4) div').html(total_truck)
+            $('tfoot').find('th:nth-child(5) div').html(total_barge)
+            $('tfoot').find('th:nth-child(6) div').html(total_wh)
+            $('tfoot').find('th:nth-child(7) div').html(total_grand)
+            dataTotal.total_load = returnSumRaw(dataSrc, 'total_load')
+            dataTotal.total_discharge = returnSumRaw(dataSrc, 'total_discharge')
+            dataTotal.total_truck = returnSumRaw(dataSrc, 'total_truck')
+            dataTotal.total_barge = returnSumRaw(dataSrc, 'total_barge')
+            dataTotal.total_wh = returnSumRaw(dataSrc, 'total_wh')
+            dataTotal.total_grand = returnSumRaw(dataSrc, 'total_grand')
+            dataTotal.key_customer = 'Current'
+            dataChart = dataSrc
+            loadChart()
+            loadCompareChart()
+        }
+
+
+        $('#type').on('change', function () {
+            $('.chart-wrapper').html('')
+            loadChart($(this).val())
+        })
+
+        Chart.register(ChartDataLabels)
+        Chart.register(Chart.Colors)
+
+        function loadChart(type = 'total_load') {
+            $('.chart-wrapper').html('')
+
+                let name = `myChart${1}`
+                $('.chart-wrapper').append(` <div class="w-1/2 p-4 pb-0"><canvas class="p-3" id="${name}"></canvas></div>`)
+                let ctx2 = document.getElementById(name);
+                let obj1 = {
+                    label: ['Current'],
+                    data: [],
+                }
+                for (const [key, value] of Object.entries(dataTotal)) {
+                    if (key == 'total_grand' || key == 'key_customer') {
+                        continue
+                    }
+                    obj1.data.push(value)
+                }
+                new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['LOAD', 'DISCHARGE', 'TRUCKS', 'BARGES', 'WAREHOUSE'],
+                        datasets: [{
+                            data: obj1.data,
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            datalabels: {
+                                formatter: (value, context) => {
+                                    if (!value) {
+                                        return ''
+                                    }
+                                    return ((value / dataTotal.total_grand) * 100).toFixed(2) + '%';
+                                },
+                                color: 'white',
+                                anchor: 'end',
+                                align: 'start'
+                            },
+                            legend: {
+                                position: 'bottom',
+                            },
+                            title: {
+                                display: true,
+                                text: 'PERCENTAGE OF SERVICES IN THE MONTH',
+                            }
+                        }
+                    },
+                });
+
+
+
+        }
+
+        function getCookiee(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+
+        function loadCompareChart() {
+            $('.compare-wrapper').html('')
+            let name = `compareChart22`
+            $('.compare-wrapper').append(` <div class="w-1/3 flex mr-4 items-center justify-center "><canvas  class="m-3 " id="${name}"></canvas></div>`)
+            let ctx2 = document.getElementById(name);
+            let obj1 = {
+                label: ['Current'],
+                data: [],
+            }
+            for (const [key, value] of Object.entries(dataTotal)) {
+                if (key == 'total_grand' || key == 'key_customer') {
+                    continue
+                }
+                obj1.data.push(value)
+            }
+
+            let obj2 = {
+                label: ['Target'],
+                data: [],
+            }
+            var data_compare
+            if (getCookiee('branch') == 'tvpl'){
+                 data_compare = dataCompare
+            }else{
+                 data_compare = dataCompare2
+            }
+            for (const [key, value] of Object.entries(data_compare)) {
+                if (key == 'total_grand' || key == 'key_customer') {
+                    continue
+                }
+                obj2.data.push(value)
+            }
+            let arrTotal = [obj1, obj2]
+            let label = ['LOAD', 'DISCHARGE', 'TRUCKS', 'BARGES', 'WAREHOUSE']
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: label,
+                    datasets: arrTotal
+                },
+                options: {
+                    plugins: {
+                        datalabels: {
+                            formatter: (value, context) => {
+                                if (context.datasetIndex == 1) {
+                                    return '100%'
+                                }
+                                return ((value / arrTotal[1].data[context.dataIndex] ) * 100).toFixed(2) + '%';
+                            },
+
+                        },
+                        title: {
+                            display: false,
+                            text: 'Compare'
+                        },
+                    },
+                    responsive: true,
+                    interaction: {
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: false
+                        }
+                    }
+                }
+            });
+
+            let name2 = 'total-chart'
+            $('.compare-wrapper').append(` <div class="w-1/5 flex items-center justify-center shadow"><canvas class="m-3 " id="${name2}"></canvas></div>`)
+            let ctx3 = document.getElementById(name2);
+            let total_1 = obj1.data.reduce((a, b) => a + b, 0)
+            let total_2 = obj2.data.reduce((a, b) => a + b, 0)
+            let total_3 = obj2.data.reduce((a, b) => a + b, 0) - obj1.data.reduce((a, b) => a + b, 0)
+            let total_chart = [total_1, total_3]
+
+            Chart.register(ChartDataLabels)
+            new Chart(ctx3, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Current', 'Target'],
+                    datasets: [{
+                        data: total_chart
+                    }]
+                },
+                options: {
+
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if(context.raw == total_1){
+                                        return total_1.toLocaleString()
+                                    }
+                                    else {
+                                        return total_2.toLocaleString()
+                                    }
+                                }
+                            }
+                        },
+                        datalabels: {
+                            formatter: (value, context) => {
+                                if (value == total_chart[1]) {
+                                    return ''
+                                }
+                                return ((value / (total_2)) * 100).toFixed(2) + '%';
+                            },
+                            color: 'white',
+                            anchor: 'end',
+                            align: 'start'
+                        },
+                        legend: {
+                            position: 'bottom',
+                        },
+                        title: {
+                            display: true,
+                            text: 'TOTAL',
+                        }
+                    }
+                },
+            });
+        }
+
+
+        $('#month').on('select2:close', function () {
+            $.ajax({
+                url: "/analytics/data",
+                data: {months: $(this).val()},
+                method: 'get',
+                success: function (e) {
+                    afterComplete(e)
+                    let filteredArray = e.data.map(item => {
+                        item.data = item.data.filter(dataItem => {
+                            return !(dataItem.total_load === 0 && dataItem.total_discharge === 0 && dataItem.total_truck === 0 && dataItem.total_barge === 0 && dataItem.total_wh === 0 && dataItem.total_grand === 0);
+                        });
+                        return item;
+                    }).filter(item => item.data.length > 0);
+                    table.clear().rows.add(filteredArray).draw();
+                }
+            })
+        })
+
+
+    })
+
+
+</script>
+
+
+<script type="module">
+
+    const LABEL = {
+        total_load: 'LOAD',
+        total_truck: 'TRUCKS',
+        total_barge: 'BARGES',
+        total_discharge: 'DISCHARGE',
+        total_wh: 'WAREHOUSE',
+        total_grand: 'TOTAL'
+    }
+
+    var tvpl = JSON.parse($('#report_tvpl').val())
+    var nnp = JSON.parse($('#report_nnp').val())
+    var grand = JSON.parse($('#report_grand').val())
+    var labels = []
+    var data_sets = [{
+        label: '',
+        data: [],
+        borderWidth: 1
+    }]
+    for (const [key, value] of Object.entries(grand[0])) {
+        if (key == 'total_grand' || key == 'id') {
+            continue
+        }
+        labels.push(LABEL[key])
+        data_sets[0].data.push(value)
+    }
+
+    var arr_tvpl = []
+    var arr_nnp = []
+
+    for (let i = 0; i < 12; i++) {
+        let g = tvpl[i] ? tvpl[i].total_grand : null
+        arr_tvpl.push([String(i + 1), g])
+    }
+
+
+    for (let i = 0; i < 12; i++) {
+        let g = nnp[i] ? nnp[i].total_grand : null
+        arr_nnp.push([String(i + 1), g])
+    }
+
+
+    google.charts.load('current', {'packages': ['line']});
+    google.charts.setOnLoadCallback(drawChart);
+    google.charts.setOnLoadCallback(drawChart2);
+
+    function drawChart() {
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'MONTH');
+        data.addColumn('number', 'PHU MY');
+
+        data.addRows(arr_tvpl);
+
+        var options = {
+            legend: {position: 'none'},
+            chart: {
+                // title: 'PHU MY',
+                // position: 'bottom'
+                // subtitle: 'in millions of dollars (USD)',
+            },
+            // 'sliceVisibilityThreshold': 0,
+            width: 530,
+            height: 300
+        };
+
+
+        var chart = new google.charts.Line(document.getElementById('line_top_x'));
+
+        chart.draw(data, google.charts.Line.convertOptions(options));
+    }
+
+    function drawChart2() {
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'MONTH');
+        data.addColumn('number', 'NGUYEN NGOC');
+
+
+        data.addRows(arr_nnp);
+
+        var options = {
+            legend: {position: "none"},
+            series: {
+                0: {color: '#e2431e'}
+            },
+            chart: {
+                // title: 'PHU MY',
+                // position: 'TOP'
+                // subtitle: 'in millions of dollars (USD)',
+            },
+            // 'sliceVisibilityThreshold': 0,
+            width: 530,
+            height: 300
+        };
+
+
+        var chart = new google.charts.Line(document.getElementById('line_top_x2'));
+
+        chart.draw(data, google.charts.Line.convertOptions(options));
+    }
+
+
+    let name2 = 'grand-chart'
+    $('.donut-wrapper').append(` <div class="w-1/4 flex items-center justify-center shadow"><canvas class="m-3 " id="${name2}"></canvas></div>`)
+    let ctx3 = document.getElementById(name2);
+    Chart.register(ChartDataLabels)
+    new Chart(ctx3, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: data_sets
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                datalabels: {
+                    formatter: (value, context) => {
+                        if (!value) {
+                            return ''
+                        }
+                        return ((value / (grand[0].total_grand)) * 100).toFixed(0) + '%';
+                    },
+                    color: 'white',
+                    anchor: 'end',
+                    align: 'start'
+                },
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'TOTAL',
+                }
+            }
+        },
+    });
+
+    var grand_tvpl = JSON.parse($('#grand_tvpl').val())
+    var grand_nnp = JSON.parse($('#grand_nnp').val())
+
+    var {id,total_grand, ...grand_tvpl_labels} = grand_tvpl[0];
+    var {id,total_grand, ...grand_nnp_labels} = grand_nnp[0];
+    let name4 = 'tvpl-chart'
+    $('.each-chart-wrapper').append(` <div class="w-full flex items-center justify-center shadow" style="height: 300px"><canvas class="m-3 " id="${name4}"></canvas></div>`)
+    let ctx4 = document.getElementById(name4);
+    new Chart(ctx4, {
+        type: 'doughnut',
+        data: {
+            labels: returnLabels(grand_tvpl_labels),
+            datasets: [{
+                label: 'TOTAL',
+                data: returnData(grand_tvpl_labels),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                datalabels: {
+                    formatter: (value, context) => {
+                        if (!value) {
+                            return ''
+                        }
+                        return ((value / (grand_tvpl[0].total_grand)) * 100).toFixed(1) + '%';
+                    },
+                    color: 'white',
+                    anchor: 'end',
+                    align: 'start'
+                },
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'TVPL',
+                }
+            }
+        },
+    });
+
+    let name5 = 'nnp-chart'
+    $('.each-chart-wrapper').append(` <div class="w-full flex items-center justify-center shadow" style="height: 300px"><canvas class="m-3 " id="${name5}"></canvas></div>`)
+    let ctx5 = document.getElementById(name5);
+    console.log(returnData(grand_nnp_labels))
+    new Chart(ctx5, {
+        type: 'doughnut',
+        data: {
+            labels: returnLabels(grand_nnp_labels),
+            datasets: [{
+                label: 'TOTAL',
+                data: returnData(grand_nnp_labels),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                datalabels: {
+                    formatter: (value, context) => {
+                        if (!value) {
+                            return ''
+                        }
+                        return ((value / (grand_nnp[0].total_grand)) * 100).toFixed(1) + '%';
+                    },
+                    color: 'white',
+                    anchor: 'end',
+                    align: 'start'
+                },
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'NNP',
+                }
+            }
+        },
+    });
+
+
+    vue.createApp({
+        data() {
+            return {
+                tvpl: tvpl,
+                nnp: nnp
+            }
+        }
+    }).mount('#app')
+
+
+    function returnLabels (e){
+        let arr = []
+        Object.keys(e).forEach(function(key, index) {
+            arr.push(LABEL[key])
+        });
+        return arr
+    }
+
+    function returnData (e){
+        let arr = []
+        Object.keys(e).forEach(function(key, index) {
+            arr.push(e[key])
+        });
+        return arr
+    }
+
+</script>

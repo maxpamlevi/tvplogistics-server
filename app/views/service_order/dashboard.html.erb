@@ -1,0 +1,456 @@
+<div class="shadow p-4 m-2 border rounded flex flex-wrap">
+  <div class="w-1/2 pb-4">
+    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="default-tab" data-tabs-toggle="#default-tab-content" role="tablist">
+      <li class="me-2" role="presentation">
+        <button class="flex p-4 border-b-2 rounded-t-lg" id="profile-tab" data-tabs-target="#profile" type="button" role="tab" data-type="listing" aria-controls="profile" aria-selected="false">
+          <img class="w-5 mr-2" src="<%= image_path('numbered-list.svg') %>">
+          <b>Listing</b>
+        </button>
+      </li>
+      <li class="me-2" role="presentation">
+        <button class="flex p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="dashboard-tab" data-type="done" data-tabs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="false">
+          <img class="w-5 mr-2" src="<%= image_path('check.svg') %>">
+          <b>Done</b>
+        </button>
+      </li>
+    </ul>
+    <div id="default-tab-content" style="display: none">
+      <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+      </div>
+      <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+      </div>
+    </div>
+  </div>
+  <% if current_user.admin? || current_user.accountant? %>
+    <div class=" w-1/2 flex justify-end h-10">
+      <button id="excelButton" class=" bg-transparent hover:bg-sky-800 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-sky-800 hover:border-transparent rounded">
+        Export Excel
+      </button>
+      <% if current_user.admin? %>
+        <a href="/dashboard/new" class="ml-3 bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded">Create</a>
+      <% end %>
+    </div>
+
+  <% end %>
+  <div id="divRequest" class="w-full">
+    <table id="example" class="display stripe row-border order-column">
+      <tfoot>
+      <tr class="footer-table">
+
+      </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</div>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.13.1/xlsx.full.min.js" defer></script>
+
+<script type="module">
+    var type = 'listing'
+    $(document).off('click', '.confirmActionU').on('click', '.confirmActionU', function (e) {
+        let text = "Want to change status ?";
+        if (confirm(text) == true) {
+            let url = $(this).attr('data-url')
+            $.get(url)
+        }
+    })
+
+    $(document).off('click', '.confirmActionD').on('click', '.confirmActionD', function (e) {
+        let text = "Want to delete it ?";
+        if (confirm(text) == true) {
+            let url = $(this).attr('data-url')
+            $.get(url)
+        }
+    })
+
+
+    function returnLink(row, url, data) {
+        if (row.so_type == 'SO LOAD') {
+            url = 'so_load'
+        } else if (row.so_type == 'SO DISC') {
+            url = 'so_disc'
+        } else if (row.so_type == 'SO CONT') {
+            url = 'so_cont'
+        } else if (row.so_type == 'SO BINH KHUONG') {
+            url = 'so_bk'
+        }
+        let html = `<div class="flex items-center ${(data == 0 || data == null) ? 'justify-center' : 'justify-end pr-12'} ">`
+        html += `<a  href="/file_data/${url}/${row.id}" data-turbo="false" class="flex items-center flex-wrap text-sky-800 cursor-pointer edit-so " style=" cursor: pointer" alt="">`
+        html += (data == 0 || data == null) ? '-' : Number(data).toLocaleString('en-US', {
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3
+        })
+        html += '</a>'
+        html += '</div>'
+        return html
+    }
+
+    $(document).on('turbo:load', function () {
+        if ($('#example_wrapper').length == 1) {
+            $('#divRequest').empty().append('<table id="example" class="display stripe row-border order-column w-full text-sm text-left rtl:text-right text-black dark:text-gray-400" style="width:100%; table-layout: fixed"> <tfoot> <tr class="footer-table"> </tr></tfoot></table>');
+        }
+        var column = [
+            {
+                "title": "STT",
+                "mData": "id",
+                "width": "20px",
+                'Sortable': false,
+                "render": function (data, type, full, meta) {
+                    return meta.row + 1;
+                }
+            },
+            {"title": "Month ", "mData": "month", "width": "50px"},
+            {"title": "CONTRACT/QUOTATION", "mData": "contract", "width": "135px"},
+            {
+                "title": "Date SO", "mData": "date_so", "width": "60px", render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return moment(data, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                }
+            },
+            {
+                "title": "CS", "mData": "users", "width": "130px", render: function (data, type, row) {
+                    var text = ''
+                    if (data.length != 0) {
+                        data = data.map(e => e.name)
+                        text = data.join(', ')
+                    }
+                    return text
+
+                }
+            },
+            {"title": "SO No.", "mData": "so", "width": "100px"},
+            {"title": "Location", "mData": "location", "width": "100px"},
+            {"title": "Equipment", "mData": "equipment", "width": "80px"},
+            {"title": "Key Customer", "mData": "key_customer", "width": "100px"},
+            {"title": "B/L NO.", "mData": "bill_of_lading", "width": "80px"},
+            {"title": "Customer", "mData": "customer_no", "width": "100px"},
+            {"title": "Commodity", "mData": "commodity", "width": "80px"},
+            {"title": "Vendor", "mData": "vendor_key", "width": "130px"},
+            {"title": "Type Cargo", "mData": "type_cargo", "width": "80px"},
+            {"title": "Vehicle", "mData": "vehicle", "width": "100px"},
+            {"title": "Name Of Vessel", "mData": "name_of_vessel", "width": "130px"},
+            {"title": "Description", "mData": "description", "width": "400px"},
+            {
+                "title": "Start", "mData": "start", "width": "70px", 'class': 'editor-date', render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return moment(data, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                }
+            },
+            {
+                "title": "End ", "mData": "end", "width": "70px", 'class': 'editor-date', render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return moment(data, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                }
+            },
+            {
+                "title": "Status",
+                "mData": "status",
+                "width": "120px",
+                render: function (data) {
+                    if (data == 1) {
+                        return `<image class="mr-2" style="width: 25px; height: 20px; display: inline-block" src="<%= image_path('check.svg') %>">`
+                    }
+                    return ''
+                }
+            },
+            {
+                "title": "LOAD", "mData": "tvpl_load", "width": "120px", render: function (data, type, row, meta) {
+                    return returnLink(row, 'load', data)
+
+                }
+            },
+            {
+                "title": "DISCHARGE", "mData": "discharge", "width": "120px", render: function (data, type, row, meta) {
+                    return returnLink(row, 'discharge', data)
+                }
+            },
+            {
+                "title": "TRUCK", "mData": "tvpl_truck", "width": "120px", render: function (data, type, row, meta) {
+                    return returnLink(row, 'truck', data)
+                }
+            },
+            {
+                "title": "BARGE", "mData": "tvpl_barge", "width": "70px", render: function (data, type, row, meta) {
+                    return returnLink(row, 'barge', data)
+                }
+            },
+            {
+                "title": "INTERNAL WH",
+                "mData": "internal_wh",
+                "width": "120px",
+                render: function (data, type, row, meta) {
+                    return returnLink(row, 'internal', data)
+                }
+            },
+            {
+                "title": "EXTERNAL WH",
+                "mData": "external_wh",
+                "width": "120px",
+                render: function (data, type, row, meta) {
+                    return returnLink(row, 'external', data)
+                }
+            },
+            {
+                "title": "Grand Total", "mData": "grand_total", "width": "100px", render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return Number(data).toLocaleString('en-US', {
+                        minimumFractionDigits: 3,
+                        maximumFractionDigits: 3
+                    })
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "Revenue", "mData": "revenue", "width": "80px", render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return Number(data).toLocaleString()
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "Cost", "mData": "cost", "width": "80px", render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return Number(data).toLocaleString()
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": "Profit", "mData": "profit", "width": "80px", render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return Number(data).toLocaleString()
+                },
+                className: 'dt-right dt-head-right'
+            },
+            {
+                "title": " DOCS DATE",
+                "mData": "docs_date",
+                "width": "100px",
+                'class': 'editor-date',
+                render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return moment(data, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                }
+            },
+            {
+                "title": " PAYMENT TERM",
+                "mData": "payment_due_date",
+                "width": "100px",
+                'class': 'editor-date',
+                render: function (data) {
+                    if (!data) {
+                        return ''
+                    }
+                    return moment(data, 'YYYY-MM-DD').format('MM-DD-YYYY')
+                }
+            },
+            {
+                "title": "", "mData": "id", "width": "150px", "class": '',
+                render: function (data, type, row) {
+                    let html = ''
+                    <% if current_user.admin? %>
+                     html = '<div class="flex items-center">'
+                    html += `<a href="/dashboard/edit/${data}" class="d-inline-block cursor-pointer edit-so" style="width: 20px; cursor: pointer"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M21.1213 2.70705C19.9497 1.53548 18.0503 1.53547 16.8787 2.70705L15.1989 4.38685L7.29289 12.2928C7.16473 12.421 7.07382 12.5816 7.02986 12.7574L6.02986 16.7574C5.94466 17.0982 6.04451 17.4587 6.29289 17.707C6.54127 17.9554 6.90176 18.0553 7.24254 17.9701L11.2425 16.9701C11.4184 16.9261 11.5789 16.8352 11.7071 16.707L19.5556 8.85857L21.2929 7.12126C22.4645 5.94969 22.4645 4.05019 21.2929 2.87862L21.1213 2.70705ZM18.2929 4.12126C18.6834 3.73074 19.3166 3.73074 19.7071 4.12126L19.8787 4.29283C20.2692 4.68336 20.2692 5.31653 19.8787 5.70705L18.8622 6.72357L17.3068 5.10738L18.2929 4.12126ZM15.8923 6.52185L17.4477 8.13804L10.4888 15.097L8.37437 15.6256L8.90296 13.5112L15.8923 6.52185ZM4 7.99994C4 7.44766 4.44772 6.99994 5 6.99994H10C10.5523 6.99994 11 6.55223 11 5.99994C11 5.44766 10.5523 4.99994 10 4.99994H5C3.34315 4.99994 2 6.34309 2 7.99994V18.9999C2 20.6568 3.34315 21.9999 5 21.9999H16C17.6569 21.9999 19 20.6568 19 18.9999V13.9999C19 13.4477 18.5523 12.9999 18 12.9999C17.4477 12.9999 17 13.4477 17 13.9999V18.9999C17 19.5522 16.5523 19.9999 16 19.9999H5C4.44772 19.9999 4 19.5522 4 18.9999V7.99994Z" fill="#000000"></path> </g></svg></a>`
+                //    html += `<a data-url="/dashboard/change_status/${data}"  class="confirmActionU ml-4 d-inline-block cursor-pointer " style="width: 20px; cursor: pointer"><img src="<%= image_url 'delete-note.svg' %>" alt=""></a>`
+                    html += `<a data-url="/dashboard/delete/${data}" class="confirmActionD ml-4 d-inline-block cursor-pointer " style="width: 20px; cursor: pointer"><img src="<%= image_url 'trash.svg' %>" alt=""></a>`
+                    <% if current_user.id == 1 || current_user.id == 7 %>
+                    if (row.status == 'done') {
+                        html += `<a data-url="/dashboard/rollback/${data}" class="confirmActionU ml-4 d-inline-block cursor-pointer " style="width: 20px; cursor: pointer"><img src="<%= image_url 'reply.svg' %>" alt=""></a>`
+                    }
+                    <% end %>
+                    html += '</div>'
+                    <% end %>
+                    return html
+                }
+            },
+
+        ]
+
+        column.forEach(function (e, i) {
+
+            // $('.footer-table').append(`<td f-key='${e.mData}'></td>`)
+        })
+        var is_admin = '<%= current_user.role %>'
+
+        var aoColumnDefs = []
+
+        if (is_admin == 'staff') {
+            aoColumnDefs = [
+                {
+                    target: [8, 27, 28, 29, 32],
+                    visible: false,
+
+                },
+
+            ]
+        }
+
+        var table = $('#example').DataTable({
+
+                "language": {
+                    decimal: ",",
+                },
+                destroy: true,
+                "ajax": {
+                    "url": "dashboard/data.json",
+                    data: function (d) {
+                        d.type = type;
+                    }
+                },
+                "iDisplayLength": 50,
+                scrollX: true,
+                scrollY: 600,
+                'columns': column,
+                columnDefs: aoColumnDefs, // {'bSearchable': false, 'aTargets': [1, 2, 3]}
+                'oLanguage': {
+                    'sSearch': '',
+                    'sInfoFiltered': '',
+                    'sSearchPlaceholder': 'Keyword ',
+                    'oPaginate': {
+                        'sFirst': '',
+                        'sLast': '',
+                        'sPrevious': '<',
+                        'sNext': '>',
+                    },
+
+                },
+                orderCellsTop: true,
+                fixedHeader: true,
+                ordering: true,
+                drawCallback: function (e) {
+                    if (!e.json) {
+                        return
+                    }
+
+                    console.log(e.json.data)
+                    var data_json = e.json.data
+
+
+                    let arr = ['tvpl_load', 'discharge', 'customers', 'tvpl_truck', 'tvpl_barge', 'internal_wh', 'external_wh', 'grand_total', 'revenue', 'cost', 'profit']
+
+                    // arr.forEach(function (e, i) {
+                    //     let str = `td[f-key='${e}']`
+                    //
+                    //     let sum = data_json.reduce(function (previousValue, currentValue) {
+                    //         let a = {}
+                    //         a[e] = previousValue[e] + currentValue[e]
+                    //         return a
+                    //     });
+                    //     let html
+                    //
+                    //     if (sum[e] === 0) {
+                    //         html = ''
+                    //     } else {
+                    //         sum[e] = sum[e].toLocaleString()
+                    //         html = `${sum[e]}`
+                    //     }
+                    //
+                    //     $(str).html(html)
+                    // })
+
+                }
+
+            }
+        )
+
+        $(document).on('click', '#default-tab button', function () {
+            type = $(this).attr('data-type')
+            table.ajax.reload();
+        })
+
+    })
+
+
+    function calculateColumnWidths(data) {
+        var columnWidths = [];
+        data.forEach(function (row) {
+            Object.keys(row).forEach(function (key, index) {
+                var cellLength = String(row[key]).length;
+                if (columnWidths[index] === undefined || cellLength > columnWidths[index]) {
+                    if (cellLength < 15) {
+                        columnWidths[index] = 15;
+                    } else {
+                        columnWidths[index] = cellLength;
+                    }
+                }
+            });
+        });
+
+        return columnWidths;
+    }
+
+
+    $('#excelButton').on('click', function () {
+        $.getJSON('dashboard/data.json', {
+            type: type
+        }, function (data) {
+
+            let row = data.data
+            row = row.map(function (e, i) {
+                return {
+                    STT: i,
+                    MONTH: e.month,
+                    'CONTRACT/QUOTATION': e.contract,
+                    'DATE SO': e.date_so,
+                    'CS ': e.users.map(e => e.name).join((', ')),
+                    'SO NO': e.so,
+                    'TYPE SO': e.so_type,
+                    'LOCATION': e.location,
+                    'EQUIPMENT': e.equipment,
+                    'CUSTOMER': e.customer_no,
+                    'KEY CUSTOMER': e.key_customer,
+                    'VENDOR': e.vendor_key,
+                    'TYPE CARGE': e.type_cargo,
+                    'COMMODITY': e.commodity,
+                    'B/L NO.': e.bill_of_loading,
+                    'VEHICLE': e.vehicle,
+                    'NAME OF VESSEL': e.name_of_vessel,
+                    'DESCRIPTION': e.description,
+                    'START': e.start,
+                    'END': e.end,
+                    'STATUS': '', // e.status,
+                    'LOAD': e.tvpl_load ? e.tvpl_load : 0,
+                    'DISCHARGE': e.discharge ? e.discharge : 0,
+                    'TRUCK': e.tvpl_truck ? e.tvpl_truck : 0,
+                    'BARGE': e.tvpl_barge ? e.tvpl_barge : '',
+                    'INTERNAL WH': e.internal_wh ? e.internal_wh : 0,
+                    'EXTERNAL WH': e.external_wh ? e.external_wh : 0,
+                    'GRAND TOTAL': e.grand_total,
+                    'REVENUE': e.revenue,
+                    'COS': e.cost,
+                    'PROFIT': e.profit,
+                    'DOCSDATE': e.docs_date,
+                    'PAYMENT_TERM': e.payment_term,
+                }
+            })
+            let currentDate = moment().format("MM-DD-YYYY")
+            let filename = 'DATA ' + currentDate + '.xlsx';
+            var ws = XLSX.utils.json_to_sheet(row);
+            var columnWidths = calculateColumnWidths(row);
+            ws['!cols'] = columnWidths.map(function (width) {
+                return {wch: width};
+            });
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "People");
+            XLSX.writeFile(wb, filename);
+        })
+    })
+
+</script>
+

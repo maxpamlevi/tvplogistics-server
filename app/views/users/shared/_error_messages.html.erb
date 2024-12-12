@@ -1,0 +1,7 @@
+<% if resource.errors.any? %>
+    <div class="ms-3 text-sm text-danger font-normal">
+      <% resource.errors.full_messages.each do |message| %>
+        <%= message %>
+      <% end %>
+    </div>
+<% end %>

@@ -1,0 +1,81 @@
+<main class="main">
+  <section class="page-title" style="background-image: url(<%= asset_path('resource/page-title-bg.jpg')%>">
+    <div class="auto-container">
+      <div class="title-outer text-center">
+        <ul class="page-breadcrumb">
+          <li><a href="/">Home</a></li>
+          <li>Contact Us</li>
+        </ul>
+        <h1 class="title">Contact Us</h1></div>
+    </div>
+  </section>
+  <section class="contact-details">
+    <div class="container ">
+      <div class="row">
+        <div class="col-xl-7 col-lg-6">
+          <div class="sec-title"><span class="sub-title">Send us email</span>
+            <h2>Feel free to write</h2></div>
+          <form id="contact_form" name="contact_form" class="" action="#" method="post">
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="mb-3"><input name="form_name" class="form-control" type="text" placeholder="Enter Name">
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="mb-3">
+                  <input name="form_email" class="form-control required email" type="email" placeholder="Enter Email">
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="mb-3">
+                  <input name="form_subject" class="form-control required" type="text" placeholder="Enter Subject">
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="mb-3"><input name="form_phone" class="form-control" type="text" placeholder="Enter Phone">
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <textarea name="form_message" class="form-control required" rows="7" placeholder="Enter Message"></textarea>
+            </div>
+            <div class="mb-5"><input name="form_botcheck" class="form-control" type="hidden" value="">
+              <button type="submit" class="theme-btn btn-style-one" data-loading-text="Please wait...">
+                <span class="btn-title">Send message</span></button>
+              <button type="reset" class="theme-btn btn-style-one ml-25"><span class="btn-title">Reset</span></button>
+            </div>
+          </form>
+        </div>
+        <div class="col-xl-5 col-lg-6">
+          <div class="contact-details__right">
+            <div class="sec-title"><span class="sub-title">Need any help?</span>
+              <h2>Get in touch with us</h2>
+              <div class="text">We’d love to hear from you</div>
+            </div>
+            <ul class="list-unstyled contact-details__info">
+              <li>
+                <div class="icon"><span class="lnr-icon-phone-plus"></span></div>
+                <div class="text"><h6 class="mb-1">Have any question?</h6>
+                  <a href="tel:+84 968 497 649"><span>Free</span> +84 968 497 649</a></div>
+              </li>
+              <li>
+                <div class="icon"><span class="lnr-icon-envelope1"></span></div>
+                <div class="text"><h6 class="mb-1">Write email</h6>
+                  <a href="mailto:sales@tvplogistics.com">sales@tvplogistics.com</a></div>
+              </li>
+              <li>
+                <div class="icon"><span class="lnr-icon-location"></span></div>
+                <div class="text"><h6 class="mb-1">Visit anytime</h6><span>Đường số 4, KCN Phú Mỹ 1, Phường Phú Mỹ,<br> Thị xã Phú Mỹ, Tỉnh Bà Rịa - Vũng Tàu, Việt Nam </span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="map-section py-0">
+    <iframe class="map w-100" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1587.3534672456458!2d107.02760071767354!3d10.571982141324591!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317513e19f41a111%3A0x7318ff6ee33244ff!2sKho%20LONG%20H%C6%AFNG!5e0!3m2!1sen!2s!4v1722959853611!5m2!1sen!2s" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>  </section>
+</main>
